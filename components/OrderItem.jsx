@@ -5,6 +5,7 @@ import {useSelector} from "react-redux";
 import Rating from "./Rating";
 import {useState} from "react";
 import RatingModal from "./RatingModal";
+import Link from "next/link";
 
 const OrderItem = ({order}) => {
 
@@ -20,16 +21,18 @@ const OrderItem = ({order}) => {
                     <div className="flex flex-col gap-6">
                         {order.orderItems.map((item, index) => (
                             <div key={index} className="flex items-center gap-4">
-                                <div
-                                    className="w-20 aspect-square bg-slate-100 flex items-center justify-center rounded-md">
+                                <Link
+                                    href={`/product/${item.product.id}`}
+                                    className="w-20 aspect-square bg-slate-100 flex items-center justify-center rounded-md hover:opacity-90 transition"
+                                >
                                     <Image
                                         className="h-14 w-auto"
                                         src={item.product.images[0]}
-                                        alt="product_img"
+                                        alt={item.product.name}
                                         width={50}
                                         height={50}
                                     />
-                                </div>
+                                </Link>
                                 <div className="flex flex-col justify-center text-sm">
                                     <p className="font-medium text-slate-600 text-base">{item.product.name}</p>
                                     <p>{currency}{item.price} Qty : {item.quantity} </p>
@@ -56,20 +59,25 @@ const OrderItem = ({order}) => {
                 <td className="text-center max-md:hidden">{currency}{order.total}</td>
 
                 <td className="text-left max-md:hidden">
-                    <p>{order.address.name}, {order.address.street},</p>
-                    <p>{order.address.city}, {order.address.state}, {order.address.zip}, {order.address.country},</p>
-                    <p>{order.address.phone}</p>
+                    <p><b>Name:</b> {order.address.name}</p>
+                    <p><b>Address:</b> {order.address.fullAddress}</p>
+                    <p><b>Mobile:</b> {order.address.phone}</p>
+                    <p className="text-green-500 mt-1">{order.address.city}</p>
                 </td>
 
                 <td className="text-left space-y-2 text-sm max-md:hidden">
-                    <div
-                        className={`flex items-center justify-center gap-1 rounded-full p-1 ${order.status === 'CONFIRMED'
-                            ? 'text-yellow-500 bg-yellow-100'
-                            : order.status === 'DELIVERED'
-                                ? 'text-green-500 bg-green-100'
-                                : 'text-slate-500 bg-slate-100'
-                        }`}
-                    >
+                    <div className={`flex items-center justify-center gap-1 rounded-full p-1 
+                        ${order.status === 'ORDER_PLACED'
+                        ? 'text-black bg-slate-100'
+                        : order.status === 'CONFIRMED'
+                            ? 'text-blue-600 bg-blue-100'
+                            : order.status === 'CANCELLED'
+                                ? 'text-red-600 bg-red-100'
+                                : order.status === 'SHIPPED'
+                                    ? 'text-yellow-600 bg-yellow-100'
+                                    : order.status === 'DELIVERED'
+                                        ? 'text-green-600 bg-green-100'
+                                        : 'text-slate-500 bg-slate-100'}`}>
                         <DotIcon size={10} className="scale-250"/>
                         {order.status.split('_').join(' ').toLowerCase()}
                     </div>
@@ -78,20 +86,24 @@ const OrderItem = ({order}) => {
             {/* Mobile */}
             <tr className="md:hidden">
                 <td colSpan={5}>
-                    <p>{order.address.name}, {order.address.street}</p>
-                    <p>{order.address.city}, {order.address.state}, {order.address.zip}, {order.address.country}</p>
-                    <p>{order.address.phone}</p>
-                    <br/>
+                    <p><b>Name:</b> {order.address.name}</p>
+                    <p><b>Address:</b> {order.address.fullAddress}</p>
+                    <p><b>Mobile:</b> {order.address.phone}</p>
+                    <p className="text-green-500 mt-1">{order.address.city}</p>
                 </td>
                 <td>
-                    <div
-                        className={`flex items-center justify-center gap-1 rounded-full p-1 ${order.status === 'CONFIRMED'
-                            ? 'text-yellow-500 bg-yellow-100'
-                            : order.status === 'DELIVERED'
-                                ? 'text-green-500 bg-green-100'
-                                : 'text-slate-500 bg-slate-100'
-                        }`}
-                    >
+                    <div className={`flex items-center justify-center gap-1 rounded-full p-1 
+                        ${order.status === 'ORDER_PLACED'
+                        ? 'text-black bg-slate-100'
+                        : order.status === 'CONFIRMED'
+                            ? 'text-blue-600 bg-blue-100'
+                            : order.status === 'CANCELLED'
+                                ? 'text-red-600 bg-red-100'
+                                : order.status === 'SHIPPED'
+                                    ? 'text-yellow-600 bg-yellow-100'
+                                    : order.status === 'DELIVERED'
+                                        ? 'text-green-600 bg-green-100'
+                                        : 'text-slate-500 bg-slate-100'}`}>
                         <DotIcon size={10} className="scale-250"/>
                         {order.status.replace(/_/g, ' ').toLowerCase()}
                     </div>

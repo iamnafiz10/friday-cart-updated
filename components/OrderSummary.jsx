@@ -105,9 +105,9 @@ const OrderSummary = ({totalPrice, items}) => {
 
     if (selectedAddress) {
         if (selectedAddress.city === "Inside Dhaka") {
-            shippingFee = 150;
-        } else if (selectedAddress.city === "Outside Dhaka") {
             shippingFee = 80;
+        } else if (selectedAddress.city === "Outside Dhaka") {
+            shippingFee = 150;
         }
     }
 

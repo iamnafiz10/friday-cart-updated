@@ -81,11 +81,11 @@ const AddressModal = ({setShowAddressModal}) => {
                         জেলা / থানা /গ্রাম
                     </p>
                     <input name="fullAddress" onChange={handleAddressChange} value={address.fullAddress}
-                           className="p-2 px-4 outline-none border border-slate-200 rounded w-full" type="email"
+                           className="p-2 px-4 outline-none border border-slate-200 rounded w-full" type="text"
                            placeholder="আপনার পুরো ঠিকানা লিখুন" required/>
                 </div>
                 <input name="phone" onChange={handleAddressChange} value={address.phone}
-                       className="p-2 px-4 outline-none border border-slate-200 rounded w-full" type="text"
+                       className="p-2 px-4 outline-none border border-slate-200 rounded w-full" type="number"
                        placeholder="মোবাইল" required/>
                 {/* ✅ Replace this input with a dropdown */}
                 <select

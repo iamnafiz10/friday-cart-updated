@@ -3,12 +3,12 @@ import {assets} from "@/assets/assets"
 import Image from "next/image"
 import {useState, useRef, useEffect} from "react"
 import {toast} from "react-hot-toast"
-import {useAuth} from "@clerk/nextjs";
-import axios from "axios";
+import {useAuth} from "@clerk/nextjs"
+import axios from "axios"
 import dynamic from "next/dynamic"
 
 // Dynamically import Jodit (prevents SSR issues)
-const JoditEditor = dynamic(() => import("jodit-react"), {ssr: false});
+const JoditEditor = dynamic(() => import("jodit-react"), {ssr: false})
 
 export default function StoreAddProduct() {
 
@@ -21,27 +21,24 @@ export default function StoreAddProduct() {
         price: 0,
         category: "",
     })
-    const [categories, setCategories] = useState([]) // ✅ from DB
+    const [categories, setCategories] = useState([])
     const [loading, setLoading] = useState(false)
-    const {getToken} = useAuth();
+    const {getToken} = useAuth()
 
-    // ✅ Fetch categories from database
+    // ✅ Fetch categories from public API (no admin auth needed)
     const fetchCategories = async () => {
         try {
-            const token = await getToken();
-            const {data} = await axios.get('/api/admin/category', {
-                headers: {Authorization: `Bearer ${token}`},
-            });
-            setCategories(data.categories || []);
+            const {data} = await axios.get('/api/categories')
+            setCategories(data.categories || [])
         } catch (error) {
-            console.error(error);
-            toast.error("Failed to load categories");
+            console.error(error)
+            toast.error("Failed to load categories")
         }
-    };
+    }
 
     useEffect(() => {
-        fetchCategories();
-    }, []);
+        fetchCategories()
+    }, [])
 
     const onChangeHandler = (e) => {
         setProductInfo({...productInfo, [e.target.name]: e.target.value})
@@ -57,9 +54,9 @@ export default function StoreAddProduct() {
             if (!images[1] && !images[2] && !images[3] && !images[4]) {
                 return toast.error('Please upload at least one image')
             }
-            setLoading(true)
 
-            const formData = new FormData();
+            setLoading(true)
+            const formData = new FormData()
             formData.append('name', productInfo.name)
             formData.append('description', productInfo.description)
             formData.append('mrp', productInfo.mrp)
@@ -70,12 +67,12 @@ export default function StoreAddProduct() {
                 images[key] && formData.append('images', images[key])
             })
 
-            const token = await getToken();
+            const token = await getToken()
             const {data} = await axios.post('/api/store/product', formData, {
                 headers: {Authorization: `Bearer ${token}`},
-            });
+            })
 
-            toast.success(data.message);
+            toast.success(data.message)
 
             // Reset form
             setProductInfo({
@@ -84,12 +81,12 @@ export default function StoreAddProduct() {
                 mrp: 0,
                 price: 0,
                 category: "",
-            });
-            setImages({1: null, 2: null, 3: null, 4: null});
+            })
+            setImages({1: null, 2: null, 3: null, 4: null})
         } catch (error) {
-            toast.error(error?.response?.data?.error || error.message);
+            toast.error(error?.response?.data?.error || error.message)
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
     }
 
@@ -130,14 +127,16 @@ export default function StoreAddProduct() {
         removeButtons: [
             "speechRecognize", "ai-assistant", "file", "spellcheck"
         ],
-    };
+    }
 
     return (
         <form
             onSubmit={e => toast.promise(onSubmitHandler(e), {loading: "Adding Product..."})}
             className="text-slate-500 mb-28"
         >
-            <h1 className="text-2xl">Add New <span className="text-slate-800 font-medium">Products</span></h1>
+            <h1 className="text-2xl">
+                Add New <span className="text-slate-800 font-medium">Products</span>
+            </h1>
             <p className="mt-7">Product Images</p>
 
             <div className="flex gap-3 mt-4">
