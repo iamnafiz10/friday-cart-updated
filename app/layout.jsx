@@ -4,7 +4,11 @@ import StoreProvider from "@/app/StoreProvider";
 import "./globals.css";
 import {ClerkProvider} from "@clerk/nextjs";
 
-const outfit = Outfit({subsets: ["latin"], weight: ["400", "500", "600"], display: "swap",});
+const outfit = Outfit({
+    subsets: ["latin"],
+    weight: ["400", "500", "600"],
+    display: "swap",
+});
 
 export const metadata = {
     title: "FridayCart Updated. - Shop smarter",
@@ -13,7 +17,11 @@ export const metadata = {
 
 export default function RootLayout({children}) {
     return (
-        <ClerkProvider>
+        <ClerkProvider
+            publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+            afterSignInUrl="/"
+            afterSignUpUrl="/"
+        >
             <html lang="en">
             <body className={`${outfit.className} antialiased`}>
             <StoreProvider>
