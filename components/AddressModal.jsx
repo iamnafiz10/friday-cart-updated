@@ -92,7 +92,8 @@ const AddressModal = ({setShowAddressModal}) => {
                     name="city"
                     onChange={handleAddressChange}
                     value={address.city || ""}
-                    className="p-2 px-4 outline-none border border-slate-200 rounded w-full bg-white text-gray-700 focus:ring-1 focus:ring-gray-200 focus:border-gray-300 hover:bg-gray-50 cursor-pointer"
+                    className="p-2 px-4 border border-slate-300 rounded-lg w-full bg-white text-slate-700 text-sm outline-none cursor-pointer
+               hover:border-slate-400 focus:ring-1 focus:ring-emerald-100 focus:border-emerald-300 transition-all"
                     required
                 >
                     <option value="" disabled hidden>

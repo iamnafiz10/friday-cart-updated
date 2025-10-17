@@ -6,6 +6,7 @@ import {toast} from "react-hot-toast"
 import {useAuth} from "@clerk/nextjs"
 import axios from "axios"
 import dynamic from "next/dynamic"
+import {ChevronDown} from "lucide-react";
 
 // Dynamically import Jodit (prevents SSR issues)
 const JoditEditor = dynamic(() => import("jodit-react"), {ssr: false})
@@ -194,7 +195,7 @@ export default function StoreAddProduct() {
             {/* Prices */}
             <div className="flex gap-5">
                 <label className="flex flex-col gap-2">
-                    Actual Price ($)
+                    Actual Price (৳)
                     <input
                         type="number"
                         name="mrp"
@@ -206,7 +207,7 @@ export default function StoreAddProduct() {
                     />
                 </label>
                 <label className="flex flex-col gap-2">
-                    Offer Price ($)
+                    Offer Price (৳)
                     <input
                         type="number"
                         name="price"
@@ -220,21 +221,37 @@ export default function StoreAddProduct() {
             </div>
 
             {/* ✅ Dynamic Category Selector */}
-            <label className="flex flex-col gap-2 my-6">
+            <label className="flex flex-col gap-2 my-6 relative w-full max-w-sm">
                 Category
-                <select
-                    onChange={e => setProductInfo({...productInfo, category: e.target.value})}
-                    value={productInfo.category}
-                    className="w-full max-w-sm p-2 px-4 outline-none border border-slate-200 rounded"
-                    required
-                >
-                    <option value="">Select a category</option>
-                    {categories.map((cat) => (
-                        <option key={cat.id ?? cat._id ?? cat.name} value={cat.name}>
-                            {cat.name}
+                <div className="relative">
+                    <select
+                        onChange={(e) => setProductInfo({...productInfo, category: e.target.value})}
+                        value={productInfo.category}
+                        required
+                        className="w-full p-2.5 px-4 rounded-lg border border-emerald-300 bg-white text-slate-700 text-sm
+                 outline-none cursor-pointer appearance-none transition-all
+                 hover:border-emerald-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                    >
+                        <option value="" disabled hidden>
+                            Select a category
                         </option>
-                    ))}
-                </select>
+                        {categories.map((cat) => (
+                            <option
+                                key={cat.id ?? cat._id ?? cat.name}
+                                value={cat.name}
+                                className="hover:bg-emerald-50"
+                            >
+                                {cat.name}
+                            </option>
+                        ))}
+                    </select>
+
+                    {/* 🔽 Dropdown Arrow Icon (Lucide) */}
+                    <ChevronDown
+                        size={18}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400 pointer-events-none"
+                    />
+                </div>
             </label>
 
             <button

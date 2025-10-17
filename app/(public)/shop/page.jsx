@@ -1,8 +1,8 @@
 'use client'
 
-import {Suspense, useEffect, useState} from "react"
+import {Suspense, useEffect, useRef, useState} from "react"
 import ProductCard from "@/components/ProductCard"
-import {MoveLeftIcon} from "lucide-react"
+import {MoveLeftIcon, FilterIcon, ChevronDownIcon} from "lucide-react"
 import {useRouter, useSearchParams} from "next/navigation"
 import {useSelector} from "react-redux"
 import axios from "axios"
@@ -17,9 +17,11 @@ function ShopContent() {
     const [categories, setCategories] = useState([])
     const [selectedCategory, setSelectedCategory] = useState(categoryParam || "")
     const [currentPage, setCurrentPage] = useState(1)
+    const [filterOpen, setFilterOpen] = useState(false)
+    const dropdownRef = useRef(null)
     const productsPerPage = 12
 
-    // ✅ Fetch all categories
+    // ✅ Fetch categories
     useEffect(() => {
         const fetchCategories = async () => {
             try {
@@ -32,12 +34,12 @@ function ShopContent() {
         fetchCategories()
     }, [])
 
-    // ✅ Reset page to 1 when filters change
+    // ✅ Reset page when filters change
     useEffect(() => {
         setCurrentPage(1)
     }, [search, selectedCategory])
 
-    // ✅ Filter by category or search
+    // ✅ Filter products
     const filteredProducts = products.filter((product) => {
         const matchesSearch = search
             ? product.name.toLowerCase().includes(search.toLowerCase())
@@ -54,17 +56,17 @@ function ShopContent() {
     const endIndex = startIndex + productsPerPage
     const paginatedProducts = filteredProducts.slice(startIndex, endIndex)
 
-    // ✅ Handle title
+    // ✅ Title
     const title = selectedCategory
         ? `${selectedCategory} Products`
         : search
             ? `Search Results`
             : "All Products"
 
-    // ✅ Handle dropdown change
-    const handleCategoryChange = (e) => {
-        const category = e.target.value
+    // ✅ Handle category change
+    const handleCategoryChange = (category) => {
         setSelectedCategory(category)
+        setFilterOpen(false)
         if (category) {
             router.push(`/shop?category=${encodeURIComponent(category)}`)
         } else {
@@ -72,7 +74,18 @@ function ShopContent() {
         }
     }
 
-    // ✅ Handle page change
+    // ✅ Click outside dropdown
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setFilterOpen(false)
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [])
+
+    // ✅ Pagination
     const handlePageChange = (page) => {
         setCurrentPage(page)
         window.scrollTo({top: 0, behavior: "smooth"})
@@ -97,23 +110,54 @@ function ShopContent() {
                         <span className="text-slate-700 font-medium">{title}</span>
                     </h1>
 
-                    {/* ✅ Category Filter Dropdown */}
-                    <select
-                        value={selectedCategory}
-                        onChange={handleCategoryChange}
-                        className="mt-3 sm:mt-0 border border-slate-300 text-slate-600 px-4 py-2 rounded-lg outline-none cursor-pointer hover:border-slate-400 transition"
-                    >
-                        <option value="">All Categories</option>
-                        {categories.map((cat) => (
-                            <option key={cat.id} value={cat.name}>
-                                {cat.name}
-                            </option>
-                        ))}
-                    </select>
+                    {/* ✅ Filter Dropdown */}
+                    <div className="relative mt-3 sm:mt-0" ref={dropdownRef}>
+                        <button
+                            onClick={() => setFilterOpen(!filterOpen)}
+                            className="flex items-center gap-2 bg-white border border-emerald-300 rounded-lg px-4 py-2 text-sm font-medium text-emerald-700 shadow-sm hover:bg-emerald-50 focus:ring-1 focus:ring-emerald-300 transition-all"
+                        >
+                            <FilterIcon size={16}/>
+                            {selectedCategory ? selectedCategory : "Filter by Category"}
+                            <ChevronDownIcon
+                                size={16}
+                                className={`transition-transform ${filterOpen ? "rotate-180" : ""}`}
+                            />
+                        </button>
+
+                        {filterOpen && (
+                            <div
+                                className="absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-md z-20"
+                            >
+                                <button
+                                    onClick={() => handleCategoryChange("")}
+                                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${
+                                        selectedCategory === ""
+                                            ? "text-slate-800 font-semibold"
+                                            : "text-slate-600"
+                                    }`}
+                                >
+                                    All Products
+                                </button>
+                                {categories.map((cat) => (
+                                    <button
+                                        key={cat.id}
+                                        onClick={() => handleCategoryChange(cat.name)}
+                                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${
+                                            selectedCategory === cat.name
+                                                ? "text-slate-800 font-semibold"
+                                                : "text-slate-600"
+                                        }`}
+                                    >
+                                        {cat.name}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {filteredProducts.length === 0 ? (
-                    <p className="text-slate-400">No products found.</p>
+                    <p className="text-slate-400 text-center mt-12">No products found.</p>
                 ) : (
                     <>
                         <div className="grid grid-cols-2 sm:flex flex-wrap gap-6 xl:gap-12 mx-auto mb-10">

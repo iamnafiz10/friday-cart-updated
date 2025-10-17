@@ -5,6 +5,7 @@ import PageTitle from "@/components/PageTitle";
 import {deleteItemFromCart} from "@/lib/features/cart/cartSlice";
 import {Trash2Icon} from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 
@@ -69,15 +70,18 @@ export default function Cart() {
                                 <tr
                                     key={index}
                                     className={`
-              hover:bg-slate-50 transition-all duration-200
-              max-sm:flex max-sm:flex-col max-sm:gap-2
-              max-sm:rounded-lg max-sm:border max-sm:border-slate-200 max-sm:p-4 max-sm:shadow-sm max-sm:mb-3
-              max-sm:relative
-            `}
+                                          hover:bg-slate-50 transition-all duration-200
+                                          max-sm:flex max-sm:flex-col max-sm:gap-2
+                                          max-sm:rounded-lg max-sm:border max-sm:border-slate-200 max-sm:p-4 max-sm:shadow-sm max-sm:mb-3
+                                          max-sm:relative
+                                        `}
                                 >
                                     <td className="flex gap-3 items-start py-3 px-4 max-sm:p-0">
-                                        <div
-                                            className="bg-slate-100 rounded-md flex items-center justify-center w-16 h-16 shrink-0">
+                                        {/* ✅ Clickable Image */}
+                                        <Link
+                                            href={`/product/${item.id}`}
+                                            className="bg-slate-100 rounded-md flex items-center justify-center w-16 h-16 shrink-0 hover:opacity-90 transition-all"
+                                        >
                                             <Image
                                                 src={item.images[0]}
                                                 className="object-contain h-14 w-auto"
@@ -85,11 +89,14 @@ export default function Cart() {
                                                 width={50}
                                                 height={50}
                                             />
-                                        </div>
+                                        </Link>
+
                                         <div className="flex-1">
                                             <p className="font-medium text-slate-700">{item.name}</p>
                                             <p className="text-xs text-slate-500">{item.category}</p>
-                                            <p className="text-sm font-semibold">{currency}{item.price}</p>
+                                            <p className="text-sm font-semibold">
+                                                {currency}{item.price}
+                                            </p>
                                         </div>
 
                                         {/* Mobile Remove Button */}

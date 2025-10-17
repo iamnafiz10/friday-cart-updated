@@ -20,3 +20,17 @@
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }
+
+/* ✅ Force Outfit for all elements */
+* {
+    font-family: 'Outfit', sans-serif !important;
+}
+
+/* ✅ Firefox sometimes ignores form controls */
+select,
+input,
+button,
+textarea,
+option {
+    font-family: 'Outfit', sans-serif !important;
+}
