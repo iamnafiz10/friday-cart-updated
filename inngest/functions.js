@@ -5,8 +5,6 @@ export const syncUserCreation = inngest.createFunction(
     {id: "sync-user-create"},
     {event: "clerk/user.created"},
     async ({event}) => {
-        console.log("🟢 Received event:", event.name);
-        console.log("🟡 Raw event data:", JSON.stringify(event, null, 2));
         const {data} = event;
 
         // Add safe fallback values
