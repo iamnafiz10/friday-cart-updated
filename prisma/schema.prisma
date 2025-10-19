@@ -1,20 +1,22 @@
 generator client {
-    provider        = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider  = "postgresql"
-    url       = env("DATABASE_URL")
-    directUrl = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // Required for creating a User: id, name, email, image, cart (optional JSON string)
 model User {
-    id    String @id
-    name  String
-    email String
-    image String
-    cart  Json   @default("{}")
+    id          String    @id @default(cuid())
+    name        String
+    email       String    @unique
+    password    String?   // 🔐 null for Google users
+    image       String?
+    cart        Json      @default("{}")
+    provider    String    @default("credentials")
 
     // Relations
     ratings     Rating[]

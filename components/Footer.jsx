@@ -55,57 +55,72 @@ const Footer = () => {
                 stroke="#90A1B9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>)
 
+
     const [randomProducts, setRandomProducts] = useState([]);
+    const [loading, setLoading] = useState(true); // 🟢 new: handle loading state safely
 
     useEffect(() => {
         const fetchRandomProducts = async () => {
             try {
                 const {data} = await axios.get("/api/products");
-                if (data?.products?.length) {
-                    const shuffled = data.products.sort(() => 0.5 - Math.random());
+
+                // ✅ Always ensure data is an array
+                const products = Array.isArray(data?.products) ? data.products : [];
+
+                if (products.length > 0) {
+                    const shuffled = [...products].sort(() => 0.5 - Math.random());
                     setRandomProducts(shuffled.slice(0, 4));
+                } else {
+                    setRandomProducts([]);
                 }
             } catch (error) {
                 console.error("❌ Failed to load products:", error);
+                setRandomProducts([]); // prevent crash
+            } finally {
+                setLoading(false);
             }
         };
         fetchRandomProducts();
     }, []);
 
-// 🟩 Helper function to limit product name to 4 words
+    // 🟩 Helper: trim long product names
     const trimName = (name) => {
         if (!name) return "";
         const words = name.split(" ");
         return words.length > 4 ? words.slice(0, 4).join(" ") + "..." : name;
     };
+
+    // 🟢 Make sure we always have a valid "PRODUCTS" section
     const linkSections = [
         {
             title: "PRODUCTS",
             links:
-                randomProducts.length > 0
-                    ? randomProducts.map((product) => ({
-                        text: trimName(product.name),
-                        path: `/product/${product.id}`,
-                    }))
-                    : [{text: "Loading...", path: "#"}],
+                loading
+                    ? [{text: "Loading...", path: "#"}]
+                    : randomProducts.length > 0
+                        ? randomProducts.map((product) => ({
+                            text: trimName(product.name),
+                            path: `/product/${product.id}`,
+                        }))
+                        : [{text: "No products available", path: "#"}],
         },
         {
-            title: "WEBSITE?",
+            title: "WEBSITE",
             links: [
-                {text: "Home", path: '/', icon: null},
-                {text: "Privacy Policy", path: '/privacy-policy', icon: null},
-                {text: "Become Plus Member", path: '/pricing', icon: null},
-                {text: "Create Your Store", path: '/create-store', icon: null},
-            ]
+                {text: "Home", path: "/", icon: null},
+                {text: "Privacy Policy", path: "/privacy-policy", icon: null},
+                {text: "Become Plus Member", path: "/pricing", icon: null},
+                {text: "Create Your Store", path: "/create-store", icon: null},
+            ],
         },
         {
             title: "CONTACT",
             links: [
-                {text: "(+880) 01321764096", path: '/', icon: MailIcon},
-                {text: "fridaycardbd@gmail.com", path: '/', icon: PhoneIcon},
-                {text: "Dhaka, Bangladesh", path: '/', icon: MapPinIcon}
-            ]
-        }
+                {text: "(+880) 01321764096", path: "/", icon: MailIcon},
+                {text: "fridaycardbd@gmail.com", path: "/", icon: PhoneIcon},
+                {text: "Dhaka, Bangladesh", path: "/", icon: MapPinIcon},
+            ],
+        },
     ];
 
     const socialIcons = [
@@ -113,7 +128,7 @@ const Footer = () => {
         {icon: InstagramIcon, link: "https://www.instagram.com"},
         {icon: TwitterIcon, link: "https://twitter.com"},
         {icon: LinkedinIcon, link: "https://www.linkedin.com"},
-    ]
+    ];
 
     return (
         <footer className="mx-6 bg-white">
@@ -122,31 +137,40 @@ const Footer = () => {
                     className="flex flex-col md:flex-row items-start justify-between gap-10 py-10 border-b border-slate-500/30 text-slate-500">
                     <div>
                         <Link href="/" className="text-4xl font-semibold text-slate-700">
-                            <span className="text-green-600">Friday</span>Cart<span
-                            className="text-green-600 text-5xl leading-0">.</span>
+                            <span className="text-green-600">Friday</span>Cart
+                            <span className="text-green-600 text-5xl leading-0">.</span>
                         </Link>
-                        <p className="max-w-[410px] mt-6 text-sm">Welcome to FridayCart, your ultimate destination for
-                            the latest and smartest gadgets. From smartphones and smartwatches to essential accessories,
-                            we bring you the best in innovation — all in one place.</p>
+                        <p className="max-w-[410px] mt-6 text-sm">
+                            Welcome to FridayCart, your ultimate destination for the latest and smartest gadgets. From
+                            smartphones and smartwatches to essential accessories, we bring you the best in innovation —
+                            all in one place.
+                        </p>
                         <div className="flex items-center gap-3 mt-5">
                             {socialIcons.map((item, i) => (
-                                <Link href={item.link} key={i}
-                                      className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:scale-105 hover:border border-slate-300 transition rounded-full">
+                                <Link
+                                    href={item.link}
+                                    key={i}
+                                    className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:scale-105 hover:border border-slate-300 transition rounded-full"
+                                >
                                     <item.icon/>
                                 </Link>
                             ))}
                         </div>
                     </div>
-                    <div className="flex flex-wrap justify-between w-full md:w-[60%] gap-5 text-sm ">
+
+                    <div className="flex flex-wrap justify-between w-full md:w-[60%] gap-5 text-sm">
                         {linkSections.map((section, index) => (
                             <div key={index}>
-                                <h3 className="font-medium text-slate-700 md:mb-5 mb-3">{section.title}</h3>
+                                <h3 className="font-medium text-slate-700 md:mb-5 mb-3">
+                                    {section.title}
+                                </h3>
                                 <ul className="space-y-2.5">
                                     {section.links.map((link, i) => (
                                         <li key={i} className="flex items-center gap-2">
                                             {link.icon && <link.icon/>}
-                                            <Link href={link.path}
-                                                  className="hover:underline transition">{link.text}</Link>
+                                            <Link href={link.path} className="hover:underline transition">
+                                                {link.text}
+                                            </Link>
                                         </li>
                                     ))}
                                 </ul>
