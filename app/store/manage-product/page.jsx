@@ -3,20 +3,19 @@ import {useEffect, useState} from "react"
 import {toast} from "react-hot-toast"
 import Image from "next/image"
 import Loading from "@/components/Loading"
-import {useAuth, useUser} from "@clerk/nextjs";
+import {useCurrentUser, getToken as getCustomToken} from "@/lib/auth";
 import axios from "axios";
 
 export default function StoreManageProducts() {
-    const {getToken} = useAuth();
-    const {user} = useUser();
-    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '$'
+    const {user, isLoaded} = useCurrentUser();
+    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '৳'
 
     const [loading, setLoading] = useState(true)
     const [products, setProducts] = useState([])
 
     const fetchProducts = async () => {
         try {
-            const token = await getToken();
+            const token = await getCustomToken();
             const {data} = await axios.get('/api/store/product', {
                 headers: {Authorization: `Bearer ${token}`},
             });
@@ -30,7 +29,7 @@ export default function StoreManageProducts() {
     const toggleStock = async (productId) => {
         // Logic to toggle the stock of a product
         try {
-            const token = await getToken();
+            const token = await getCustomToken();
             const {data} = await axios.post('/api/store/stock-toggle', {productId}, {
                 headers: {Authorization: `Bearer ${token}`},
             });

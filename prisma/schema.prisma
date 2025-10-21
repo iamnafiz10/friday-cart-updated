@@ -17,6 +17,7 @@ model User {
     image       String?
     cart        Json      @default("{}")
     provider    String    @default("credentials")
+    isAdmin     Boolean   @default(false)
 
     // Relations
     ratings     Rating[]
@@ -134,7 +135,6 @@ model Coupon {
     description String
     discount    Float
     forNewUser  Boolean
-    forMember   Boolean  @default(false)
     isPublic    Boolean
     expiresAt   DateTime
     createdAt   DateTime @default(now())

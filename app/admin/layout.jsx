@@ -1,5 +1,5 @@
 import AdminLayout from "@/components/admin/AdminLayout";
-import {SignedIn, SignedOut, SignIn} from "@clerk/nextjs";
+import AdminRedirectGate from "@/components/admin/AdminRedirectGate";
 
 export const metadata = {
     title: "FridayCart. - Admin",
@@ -7,19 +7,11 @@ export const metadata = {
 };
 
 export default function RootAdminLayout({children}) {
-
     return (
-        <>
-            <SignedIn>
-                <AdminLayout>
-                    {children}
-                </AdminLayout>
-            </SignedIn>
-            <SignedOut>
-                <div className="min-h-screen flex items-center justify-center">
-                    <SignIn fallbackRedirectUrl="/admin" routing="hash"/>
-                </div>
-            </SignedOut>
-        </>
+        <AdminLayout>
+            <AdminRedirectGate>
+                {children}
+            </AdminRedirectGate>
+        </AdminLayout>
     );
 }

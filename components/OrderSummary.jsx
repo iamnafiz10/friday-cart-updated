@@ -5,14 +5,13 @@ import AddressModal from './AddressModal';
 import {useDispatch, useSelector} from 'react-redux';
 import toast from 'react-hot-toast';
 import {useRouter} from 'next/navigation';
-import {useAuth, useUser} from '@clerk/nextjs';
+import {useCurrentUser, getToken as getCustomToken} from '@/lib/auth';
 import axios from 'axios';
 import {fetchCart} from '@/lib/features/cart/cartSlice';
 import {deleteAddress} from '@/lib/features/address/addressSlice';
 
 const OrderSummary = ({totalPrice, items}) => {
-    const {user} = useUser();
-    const {getToken} = useAuth();
+    const {user, isLoaded} = useCurrentUser(); // 🔹 custom auth
     const dispatch = useDispatch();
     const currency = '৳'; // Always use BDT Taka symbol
     const router = useRouter();
@@ -25,7 +24,6 @@ const OrderSummary = ({totalPrice, items}) => {
     const [couponCodeInput, setCouponCodeInput] = useState('');
     const [coupon, setCoupon] = useState('');
 
-    // ref to detect addressList length changes
     const prevAddressCount = useRef(addressList.length);
 
     // 🟢 Handle coupon
@@ -33,7 +31,7 @@ const OrderSummary = ({totalPrice, items}) => {
         event.preventDefault();
         try {
             if (!user) return toast('Please login to proceed');
-            const token = await getToken();
+            const token = await getCustomToken(); // 🔹 custom auth token
             const {data} = await axios.post(
                 '/api/coupon',
                 {code: couponCodeInput},
@@ -53,7 +51,7 @@ const OrderSummary = ({totalPrice, items}) => {
             if (!user) return toast('Please login to place an order');
             if (!selectedAddress) return toast('Please select an address');
 
-            const token = await getToken();
+            const token = await getCustomToken(); // 🔹 custom auth token
             const orderData = {
                 addressId: selectedAddress.id,
                 items,
@@ -71,26 +69,25 @@ const OrderSummary = ({totalPrice, items}) => {
             } else {
                 toast.success(data.message);
                 router.push('/orders');
-                dispatch(fetchCart({getToken}));
+                dispatch(fetchCart({token})); // 🔹 pass custom token to redux
             }
         } catch (error) {
             toast.error(error?.response?.data?.error || error.message);
         }
     };
-// 🟠 Delete address
+
+    // 🟠 Delete address
     const handleDeleteAddress = async (id) => {
         try {
-            await dispatch(deleteAddress({id, getToken})).unwrap();
+            const token = await getCustomToken(); // 🔹 custom auth token
+            await dispatch(deleteAddress({id, token})).unwrap();
 
-            // if deleted address was selected, clear selection
             if (selectedAddress?.id === id) {
                 setSelectedAddress(null);
             }
-
             toast.success('Address deleted successfully');
         } catch (error) {
             console.error('Delete address error:', error);
-            // handle empty error object or undefined safely
             const message =
                 error?.response?.data?.error ||
                 error?.message ||
@@ -100,68 +97,53 @@ const OrderSummary = ({totalPrice, items}) => {
         }
     };
 
-    // 🟣 Dynamic shipping cost logic (clean & accurate)
+    // 🟣 Dynamic shipping cost logic
     let shippingFee = 150;
-
     if (selectedAddress) {
-        if (selectedAddress.city === "Inside Dhaka") {
-            shippingFee = 80;
-        } else if (selectedAddress.city === "Outside Dhaka") {
-            shippingFee = 150;
-        }
+        if (selectedAddress.city === 'Inside Dhaka') shippingFee = 80;
+        else if (selectedAddress.city === 'Outside Dhaka') shippingFee = 150;
     }
 
-    // 🧮 Calculate totals
     const discount = coupon ? (coupon.discount / 100) * totalPrice : 0;
     const finalTotal = totalPrice - discount + shippingFee;
 
-    // When addressList changes (length increased), auto-select the newest address
+    // Auto-select newest address when addressList changes
     useEffect(() => {
         const prevCount = prevAddressCount.current;
         const currentCount = addressList.length;
 
-        // If an address was added (count increased) and the modal is closed,
-        // pick the newest address automatically and select it.
-        if (currentCount > prevCount) {
-            // find newest by createdAt if available
-            let newest = null;
-            try {
-                newest = addressList.slice().sort((a, b) => {
-                    const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-                    const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-                    return ta - tb;
-                }).pop();
-            } catch {
-                // fall back to last element
-                newest = addressList[addressList.length - 1];
-            }
-
-            // only auto-select if modal just closed or nothing is selected
-            if (!showAddressModal) {
-                setSelectedAddress(newest || null);
-            }
+        if (currentCount > prevCount && !showAddressModal) {
+            const newest =
+                addressList
+                    .slice()
+                    .sort(
+                        (a, b) =>
+                            new Date(a.createdAt || 0).getTime() -
+                            new Date(b.createdAt || 0).getTime()
+                    )
+                    .pop() || addressList[addressList.length - 1];
+            setSelectedAddress(newest || null);
         }
 
         prevAddressCount.current = currentCount;
     }, [addressList, showAddressModal]);
 
-    // If addressList is populated and nothing selected, optionally pre-select top address
     useEffect(() => {
         if (!selectedAddress && addressList.length > 0) {
-            // choose the newest address (by createdAt if present)
-            let newest = null;
-            try {
-                newest = addressList.slice().sort((a, b) => {
-                    const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-                    const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-                    return ta - tb;
-                }).pop();
-            } catch {
-                newest = addressList[addressList.length - 1];
-            }
+            const newest =
+                addressList
+                    .slice()
+                    .sort(
+                        (a, b) =>
+                            new Date(a.createdAt || 0).getTime() -
+                            new Date(b.createdAt || 0).getTime()
+                    )
+                    .pop() || addressList[addressList.length - 1];
+            setSelectedAddress(newest || null);
         }
-    }, []); // run once on mount
+    }, [addressList]);
 
+    if (!isLoaded) return null; // Wait for user data
     return (
         <div
             className="w-full lg:max-w-[340px] bg-slate-50/30 border border-slate-200 text-slate-500 text-sm rounded-xl p-7"

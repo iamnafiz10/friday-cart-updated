@@ -1,45 +1,64 @@
-import {getAuth} from "@clerk/nextjs/server";
-import authSeller from "@/middlewares/authSeller";
 import {NextResponse} from "next/server";
+import {getCurrentUser} from "@/lib/serverAuth";
+import authSeller from "@/middlewares/authSeller";
+import prisma from "@/lib/prisma";
 
 // Update seller orders status
 export async function POST(request) {
     try {
-        const {userId} = getAuth(request);
-        const storeId = await authSeller(userId);
-
-        if (!storeId) {
-            return NextResponse.json({error: 'Not authorized'}, {status: 401})
+        const user = await getCurrentUser(request);
+        if (!user) {
+            return NextResponse.json({error: 'Not authorized'}, {status: 401});
         }
+
+        const storeId = await authSeller(user.id);
+        if (!storeId) {
+            return NextResponse.json({error: 'Not authorized'}, {status: 401});
+        }
+
         const {orderId, status} = await request.json();
+        if (!orderId || !status) {
+            return NextResponse.json({error: 'Missing orderId or status'}, {status: 400});
+        }
+
         await prisma.order.update({
-            where: {id: orderId, storeId},
+            where: {id: orderId},
             data: {status}
-        })
-        return NextResponse.json({message: "Order status updated"})
+        });
+
+        return NextResponse.json({message: "Order status updated"});
     } catch (error) {
         console.error(error);
-        return NextResponse.json({error: error.code || error.message}, {status: 400})
+        return NextResponse.json({error: error.message || "Failed to update order"}, {status: 400});
     }
 }
 
 // Get all orders for seller
 export async function GET(request) {
     try {
-        const {userId} = getAuth(request);
-        const storeId = await authSeller(userId);
-
-        if (!storeId) {
-            return NextResponse.json({error: 'Not authorized'}, {status: 401})
+        const user = await getCurrentUser(request);
+        if (!user) {
+            return NextResponse.json({error: 'Not authorized'}, {status: 401});
         }
+
+        const storeId = await authSeller(user.id);
+        if (!storeId) {
+            return NextResponse.json({error: 'Not authorized'}, {status: 401});
+        }
+
         const orders = await prisma.order.findMany({
             where: {storeId},
-            include: {user: true, address: true, orderItems: {include: {product: true}}},
+            include: {
+                user: true,
+                address: true,
+                orderItems: {include: {product: true}}
+            },
             orderBy: {createdAt: 'desc'}
-        })
-        return NextResponse.json({orders})
+        });
+
+        return NextResponse.json({orders});
     } catch (error) {
         console.error(error);
-        return NextResponse.json({error: error.code || error.message}, {status: 400})
+        return NextResponse.json({error: error.message || "Failed to fetch orders"}, {status: 400});
     }
 }

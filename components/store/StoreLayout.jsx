@@ -5,18 +5,17 @@ import Link from "next/link"
 import {ArrowRightIcon} from "lucide-react"
 import SellerNavbar from "./StoreNavbar"
 import SellerSidebar from "./StoreSidebar"
-import {useAuth} from "@clerk/nextjs";
+import { useCurrentUser, getToken as getCustomToken } from "@/lib/auth";
 import axios from "axios";
 
 const StoreLayout = ({children}) => {
-    const {getToken} = useAuth();
     const [isSeller, setIsSeller] = useState(false)
     const [loading, setLoading] = useState(true)
     const [storeInfo, setStoreInfo] = useState(null)
 
     const fetchIsSeller = async () => {
         try {
-            const token = await getToken();
+            const token = await getCustomToken();
             const {data} = await axios.get('/api/store/is-seller', {headers: {Authorization: `Bearer ${token}`}})
             setIsSeller(data.isSeller)
             setStoreInfo(data.storeInfo)

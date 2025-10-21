@@ -3,19 +3,18 @@ import StoreInfo from "@/components/admin/StoreInfo"
 import Loading from "@/components/Loading"
 import {useEffect, useState} from "react"
 import toast from "react-hot-toast"
-import {useAuth, useUser} from "@clerk/nextjs";
+import {useCurrentUser, getToken as getCustomToken} from "@/lib/auth";
 import axios from "axios";
 
 export default function AdminStores() {
 
-    const {user} = useUser();
-    const {getToken} = useAuth();
+    const {user, isLoaded} = useCurrentUser();
     const [stores, setStores] = useState([])
     const [loading, setLoading] = useState(true)
 
     const fetchStores = async () => {
         try {
-            const token = await getToken();
+            const token = await getCustomToken();
             const {data} = await axios.get('/api/admin/stores', {headers: {Authorization: `Bearer ${token}`}})
             setStores(data.stores)
         } catch (error) {
@@ -27,7 +26,7 @@ export default function AdminStores() {
     const toggleIsActive = async (storeId) => {
         // Logic to toggle the status of a store
         try {
-            const token = await getToken();
+            const token = await getCustomToken();
             const {data} = await axios.post('/api/admin/toggle-store', {storeId}, {headers: {Authorization: `Bearer ${token}`}})
             await fetchStores();
             toast.success(data.message)

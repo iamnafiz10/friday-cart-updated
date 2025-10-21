@@ -5,15 +5,14 @@ import Footer from "@/components/Footer";
 import {useEffect} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {fetchProducts} from "@/lib/features/product/productSlice";
-import {useAuth, useUser} from "@clerk/nextjs";
+import {useCurrentUser, getToken as getCustomToken} from "@/lib/auth";
 import {fetchCart, uploadCart} from "@/lib/features/cart/cartSlice";
 import {fetchAddress} from "@/lib/features/address/addressSlice";
 import {fetchUserRatings} from "@/lib/features/rating/ratingSlice";
 
 export default function PublicLayout({children}) {
     const dispatch = useDispatch();
-    const {user} = useUser();
-    const {getToken} = useAuth();
+    const {user, isLoaded} = useCurrentUser();
     const {cartItems} = useSelector((state) => state.cart)
 
     useEffect(() => {
@@ -21,18 +20,28 @@ export default function PublicLayout({children}) {
     }, [])
 
     useEffect(() => {
-        if (user) {
-            dispatch(fetchCart({getToken}))
-            dispatch(fetchAddress({getToken}))
-            dispatch(fetchUserRatings({getToken}))
-        }
-    }, [user])
+        const fetchUserData = async () => {
+            if (user) {
+                const token = await getCustomToken();
+                dispatch(fetchCart({token}));
+                dispatch(fetchAddress({token}));
+                dispatch(fetchUserRatings({token}));
+            }
+        };
+
+        fetchUserData();
+    }, [user]);
 
     useEffect(() => {
-        if (user) {
-            dispatch(uploadCart({getToken}))
-        }
-    }, [cartItems])
+        const uploadCartData = async () => {
+            if (user && cartItems.length > 0) {
+                const token = await getCustomToken();
+                dispatch(uploadCart({token}));
+            }
+        };
+
+        uploadCartData();
+    }, [cartItems, user]);
 
     return (
         <>

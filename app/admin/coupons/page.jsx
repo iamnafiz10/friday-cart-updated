@@ -3,12 +3,10 @@ import {useEffect, useState} from "react"
 import {format} from "date-fns"
 import toast from "react-hot-toast"
 import {DeleteIcon} from "lucide-react"
-import {useAuth} from "@clerk/nextjs";
+import {getToken as getCustomToken} from "@/lib/auth";
 import axios from "axios";
 
 export default function AdminCoupons() {
-
-    const {getToken} = useAuth();
     const [coupons, setCoupons] = useState([])
 
     const [newCoupon, setNewCoupon] = useState({
@@ -16,14 +14,13 @@ export default function AdminCoupons() {
         description: '',
         discount: '',
         forNewUser: false,
-        forMember: false,
         isPublic: false,
         expiresAt: new Date()
     })
 
     const fetchCoupons = async () => {
         try {
-            const token = await getToken();
+            const token = await getCustomToken();
             const {data} = await axios.get('/api/admin/coupon', {headers: {Authorization: `Bearer ${token}`}})
             setCoupons(data.coupons);
         } catch (error) {
@@ -33,9 +30,8 @@ export default function AdminCoupons() {
 
     const handleAddCoupon = async (e) => {
         e.preventDefault()
-        // Logic to add a coupon
         try {
-            const token = await getToken();
+            const token = await getCustomToken();
             newCoupon.discount = Number(newCoupon.discount);
             newCoupon.expiresAt = new Date(newCoupon.expiresAt);
 
@@ -52,11 +48,10 @@ export default function AdminCoupons() {
     }
 
     const deleteCoupon = async (code) => {
-        // Logic to delete a coupon
         try {
             const confirm = window.confirm("Are you sure you want to delete this coupon?");
             if (!confirm) return;
-            const token = await getToken();
+            const token = await getCustomToken();
             await axios.delete(`/api/admin/coupon?code=${code}`, {headers: {Authorization: `Bearer ${token}`}})
             await fetchCoupons();
             toast.success("Coupon deleted successfully")
@@ -116,15 +111,15 @@ export default function AdminCoupons() {
                     <div className="flex gap-2 mt-3">
                         <label className="relative inline-flex items-center cursor-pointer text-gray-900 gap-3">
                             <input type="checkbox" className="sr-only peer"
-                                   name="forMember" checked={newCoupon.forMember}
-                                   onChange={(e) => setNewCoupon({...newCoupon, forMember: e.target.checked})}
+                                   name="isPublic" checked={newCoupon.isPublic}
+                                   onChange={(e) => setNewCoupon({...newCoupon, isPublic: e.target.checked})}
                             />
                             <div
                                 className="w-11 h-6 bg-slate-300 rounded-full peer peer-checked:bg-green-600 transition-colors duration-200"></div>
                             <span
                                 className="dot absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-5"></span>
                         </label>
-                        <p>For Member</p>
+                        <p>For Public</p>
                     </div>
                 </div>
                 <button className="mt-4 p-2 px-10 rounded bg-slate-700 text-white active:scale-95 transition">Add
@@ -144,7 +139,7 @@ export default function AdminCoupons() {
                             <th className="py-3 px-4 text-left font-semibold text-slate-600">Discount</th>
                             <th className="py-3 px-4 text-left font-semibold text-slate-600">Expires At</th>
                             <th className="py-3 px-4 text-left font-semibold text-slate-600">New User</th>
-                            <th className="py-3 px-4 text-left font-semibold text-slate-600">For Member</th>
+                            <th className="py-3 px-4 text-left font-semibold text-slate-600">Public</th>
                             <th className="py-3 px-4 text-left font-semibold text-slate-600">Action</th>
                         </tr>
                         </thead>
@@ -156,7 +151,7 @@ export default function AdminCoupons() {
                                 <td className="py-3 px-4 text-slate-800">{coupon.discount}%</td>
                                 <td className="py-3 px-4 text-slate-800">{format(coupon.expiresAt, 'yyyy-MM-dd')}</td>
                                 <td className="py-3 px-4 text-slate-800">{coupon.forNewUser ? 'Yes' : 'No'}</td>
-                                <td className="py-3 px-4 text-slate-800">{coupon.forMember ? 'Yes' : 'No'}</td>
+                                <td className="py-3 px-4 text-slate-800">{coupon.isPublic ? 'Yes' : 'No'}</td>
                                 <td className="py-3 px-4 text-slate-800">
                                     <DeleteIcon
                                         onClick={() => toast.promise(deleteCoupon(coupon.code), {loading: "Deleting coupon..."})}

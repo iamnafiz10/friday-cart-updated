@@ -2,7 +2,7 @@
 import PageTitle from "@/components/PageTitle";
 import {useEffect, useState, useRef} from "react";
 import OrderItem from "@/components/OrderItem";
-import {useAuth, useUser} from "@clerk/nextjs";
+import {useCurrentUser, getToken as getCustomToken} from "@/lib/auth";
 import axios from "axios";
 import toast from "react-hot-toast";
 import {useRouter} from "next/navigation";
@@ -10,8 +10,7 @@ import Loading from "@/components/Loading";
 import {FilterIcon, ChevronDownIcon} from "lucide-react";
 
 export default function Orders() {
-    const {getToken} = useAuth();
-    const {user, isLoaded} = useUser();
+    const {user, isLoaded} = useCurrentUser();
     const [orders, setOrders] = useState([]);
     const [filteredOrders, setFilteredOrders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -25,7 +24,8 @@ export default function Orders() {
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const token = await getToken();
+                // 🔑 Fetch token for API call
+                const token = await getCustomToken();
                 const {data} = await axios.get("/api/orders", {
                     headers: {Authorization: `Bearer ${token}`},
                 });
@@ -41,6 +41,7 @@ export default function Orders() {
                 toast.error(error?.response?.data?.error || error.message);
             }
         };
+
         if (isLoaded) {
             if (user) {
                 fetchOrders();
@@ -48,9 +49,9 @@ export default function Orders() {
                 router.push("/");
             }
         }
-    }, [isLoaded, user, getToken, router]);
+    }, [isLoaded, user, router]);
 
-    // ✅ Handle filter change
+// ✅ Handle filter change
     const handleFilterChange = (status) => {
         setFilterStatus(status);
         setFilterOpen(false);
@@ -63,7 +64,7 @@ export default function Orders() {
         setCurrentPage(1);
     };
 
-    // ✅ Click outside to close dropdown
+// ✅ Click outside to close dropdown
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -83,7 +84,7 @@ export default function Orders() {
     const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
     const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
 
-    // ✅ Empty state message
+// ✅ Empty state message
     const emptyMessages = {
         ORDER_PLACED: "You have no placed orders.",
         CONFIRMED: "You have no confirmed orders.",
@@ -92,7 +93,6 @@ export default function Orders() {
         CANCELLED: "You have no cancelled orders.",
         All: "You have no orders.",
     };
-
     return (
         <div className="min-h-[70vh] mx-6 relative">
             {/* ✅ Bangla Alert */}

@@ -2,15 +2,14 @@
 import {XIcon} from "lucide-react"
 import {useState} from "react"
 import {toast} from "react-hot-toast"
-import {useAuth, useUser} from "@clerk/nextjs"
+import { useCurrentUser, getToken as getCustomToken } from "@/lib/auth";
 import {useDispatch} from "react-redux"
 import axios from "axios"
 import {addAddress} from "@/lib/features/address/addressSlice"
 
 const AddressModal = ({setShowAddressModal}) => {
 
-    const {getToken} = useAuth();
-    const {user} = useUser();
+    const { user, isLoaded } = useCurrentUser();
     const dispatch = useDispatch();
 
     const [address, setAddress] = useState({
@@ -39,7 +38,7 @@ const AddressModal = ({setShowAddressModal}) => {
         }
 
         try {
-            const token = await getToken();
+            const token = await getCustomToken();
 
             const res = await axios.post(
                 '/api/address',

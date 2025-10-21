@@ -1,13 +1,13 @@
-import {getAuth} from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma";
 import {NextResponse} from "next/server";
+import {getCurrentUser} from "@/lib/serverAuth";
 
 // 🟩 Add new address
 export async function POST(request) {
     try {
-        const {userId} = getAuth(request);
-
-        if (!userId) {
+        // 🔹 Get current logged-in user
+        const user = await getCurrentUser(request);
+        if (!user) {
             return NextResponse.json(
                 {error: "Please login your account first"},
                 {status: 401}
@@ -15,7 +15,7 @@ export async function POST(request) {
         }
 
         const {address} = await request.json();
-        address.userId = userId;
+        address.userId = user.id;
 
         const newAddress = await prisma.address.create({
             data: address,
@@ -37,10 +37,17 @@ export async function POST(request) {
 // 🟦 Get all address for a user
 export async function GET(request) {
     try {
-        const {userId} = getAuth(request);
+        // 🔹 Get current logged-in user
+        const user = await getCurrentUser(request);
+        if (!user) {
+            return NextResponse.json(
+                {error: "Unauthorized"},
+                {status: 401}
+            );
+        }
 
         const addresses = await prisma.address.findMany({
-            where: {userId},
+            where: {userId: user.id},
         });
 
         return NextResponse.json({addresses});

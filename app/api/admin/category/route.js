@@ -1,15 +1,21 @@
-import {getAuth} from "@clerk/nextjs/server";
-import authAdmin from "@/middlewares/authAdmin";
 import {NextResponse} from "next/server";
 import prisma from "@/lib/prisma";
+import authAdmin from "@/middlewares/authAdmin";
+import {getCurrentUser} from "@/lib/serverAuth";
 
 // ✅ Add new category
 export async function POST(request) {
     try {
-        const {userId} = getAuth(request);
-        const isAdmin = await authAdmin(userId);
+        // 🔹 Get current user
+        const user = await getCurrentUser(request);
+        if (!user) {
+            return NextResponse.json({error: "Unauthorized"}, {status: 401});
+        }
+
+        // 🔹 Check if user is admin
+        const isAdmin = await authAdmin(user.id);
         if (!isAdmin) {
-            return NextResponse.json({error: "Not authorize"}, {status: 401});
+            return NextResponse.json({error: "Not authorized"}, {status: 401});
         }
 
         const {category} = await request.json();
@@ -32,10 +38,16 @@ export async function POST(request) {
 // ✅ Delete category
 export async function DELETE(request) {
     try {
-        const {userId} = getAuth(request);
-        const isAdmin = await authAdmin(userId);
+        // 🔹 Get current user
+        const user = await getCurrentUser(request);
+        if (!user) {
+            return NextResponse.json({error: "Unauthorized"}, {status: 401});
+        }
+
+        // 🔹 Check admin
+        const isAdmin = await authAdmin(user.id);
         if (!isAdmin) {
-            return NextResponse.json({error: "Not authorize"}, {status: 401});
+            return NextResponse.json({error: "Not authorized"}, {status: 401});
         }
 
         const {searchParams} = request.nextUrl;
@@ -58,10 +70,16 @@ export async function DELETE(request) {
 // ✅ Get all categories
 export async function GET(request) {
     try {
-        const {userId} = getAuth(request);
-        const isAdmin = await authAdmin(userId);
+        // 🔹 Get current user
+        const user = await getCurrentUser(request);
+        if (!user) {
+            return NextResponse.json({error: "Unauthorized"}, {status: 401});
+        }
+
+        // 🔹 Check admin
+        const isAdmin = await authAdmin(user.id);
         if (!isAdmin) {
-            return NextResponse.json({error: "Not authorize"}, {status: 401});
+            return NextResponse.json({error: "Not authorized"}, {status: 401});
         }
 
         const categories = await prisma.category.findMany({

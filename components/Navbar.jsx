@@ -130,12 +130,19 @@ const Navbar = () => {
         }
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem("user");
-        setUser(null);
-        setDesktopDropdownOpen(false);
-        setMobileDropdownOpen(false);
-        toast.success("Signed out successfully!");
+    const handleLogout = async () => {
+        try {
+            await fetch("/api/auth/logout", {method: "POST"});
+            localStorage.removeItem("user");
+            setUser(null);
+            setDesktopDropdownOpen(false);
+            setMobileDropdownOpen(false);
+            toast.success("Signed out successfully!");
+            router.push("/"); // Redirect to home page
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to logout");
+        }
     };
 
     const [manageAccountOpen, setManageAccountOpen] = useState(false);
@@ -193,10 +200,10 @@ const Navbar = () => {
                                         onClick={() => setDesktopDropdownOpen(!desktopDropdownOpen)}
                                         className="flex items-center gap-2 rounded-full px-3 py-1.5 hover:bg-slate-100 transition"
                                     >
-                                        {user.image ? (
+                                        {user.image && user.image.trim() !== "" ? (
                                             <img
                                                 src={user.image}
-                                                alt="user"
+                                                alt={user.name || "User"}
                                                 className="w-8 h-8 rounded-full object-cover border border-green-100"
                                             />
                                         ) : (

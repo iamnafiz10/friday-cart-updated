@@ -1,14 +1,21 @@
-import {clerkClient} from "@clerk/nextjs/server";
+import prisma from "@/lib/prisma";
 
+// ✅ Check if a user is admin
 const authAdmin = async (userId) => {
     try {
-        if (!userId) return false
-        const client = await clerkClient()
-        const user = await client.users.getUser(userId)
-        return process.env.ADMIN_EMAIL.split(',').includes(user.emailAddresses[0].emailAddress)
+        if (!userId) return false;
+
+        // 🔹 Fetch the user from your database
+        const user = await prisma.user.findUnique({
+            where: {id: userId},
+        });
+
+        // 🔹 Check if the user exists and is admin
+        return user?.isAdmin === true;
     } catch (error) {
-        console.error(error)
-        return false
+        console.error(error);
+        return false;
     }
-}
-export default authAdmin
+};
+
+export default authAdmin;

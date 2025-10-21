@@ -1,16 +1,18 @@
-import {getAuth} from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma";
 import {NextResponse} from "next/server";
+import {getCurrentUser} from "@/lib/serverAuth";
 
 export async function DELETE(req, context) {
     try {
-        const {userId} = getAuth(req);
-        if (!userId) {
+        // 🔹 Get current logged-in user
+        const user = await getCurrentUser(req);
+        if (!user) {
             return NextResponse.json({error: "Unauthorized"}, {status: 401});
         }
+        const userId = user.id;
 
-        // ✅ Await params (new Next.js requirement)
-        const {id} = await context.params;
+        // ✅ Await params (Next.js requirement)
+        const {id} = context.params;
 
         // 🔹 Check if address exists
         const address = await prisma.address.findUnique({where: {id}});

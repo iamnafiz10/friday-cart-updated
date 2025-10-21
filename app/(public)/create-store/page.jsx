@@ -4,14 +4,13 @@ import {useEffect, useState} from "react"
 import Image from "next/image"
 import toast from "react-hot-toast"
 import Loading from "@/components/Loading"
-import {useAuth, useUser} from "@clerk/nextjs";
-import {useRouter} from "next/navigation";
-import axios from "axios";
+import {useCurrentUser, getToken as getCustomToken} from "@/lib/auth"
+import {useRouter} from "next/navigation"
+import axios from "axios"
 
 export default function CreateStore() {
-    const {user} = useUser();
-    const router = useRouter();
-    const {getToken} = useAuth();
+    const {user, isLoaded} = useCurrentUser()
+    const router = useRouter()
     const [alreadySubmitted, setAlreadySubmitted] = useState(false)
     const [status, setStatus] = useState("")
     const [loading, setLoading] = useState(true)
@@ -32,10 +31,13 @@ export default function CreateStore() {
     }
 
     const fetchSellerStatus = async () => {
-        const token = await getToken();
+        const token = await getCustomToken()
         try {
-            const {data} = await axios.get('/api/store/create', {headers: {Authorization: `Bearer ${token}`}})
-            if (['approved', 'rejected', 'pending',].includes(data.status)) {
+            const {data} = await axios.get('/api/store/create', {
+                headers: {Authorization: `Bearer ${token}`}
+            })
+
+            if (['approved', 'rejected', 'pending'].includes(data.status)) {
                 setStatus(data.status)
                 setAlreadySubmitted(true)
                 switch (data.status) {
@@ -48,8 +50,6 @@ export default function CreateStore() {
                         break;
                     case "pending":
                         setMessage("Your store request is pending, please wait for admin to approve your store.")
-                        break;
-                    default:
                         break;
                 }
             } else {
@@ -67,8 +67,8 @@ export default function CreateStore() {
             return toast('Please login to continue');
         }
         try {
-            const token = await getToken();
-            const formData = new FormData();
+            const token = await getCustomToken()
+            const formData = new FormData()
             formData.append("name", storeInfo.name)
             formData.append("description", storeInfo.description)
             formData.append("username", storeInfo.username)
@@ -77,7 +77,9 @@ export default function CreateStore() {
             formData.append("address", storeInfo.address)
             formData.append("image", storeInfo.image)
 
-            const {data} = await axios.post('/api/store/create', formData, {headers: {Authorization: `Bearer ${token}`}})
+            const {data} = await axios.post('/api/store/create', formData, {
+                headers: {Authorization: `Bearer ${token}`}
+            })
             toast.success(data.message)
             await fetchSellerStatus()
         } catch (error) {
@@ -88,8 +90,12 @@ export default function CreateStore() {
     useEffect(() => {
         if (user) {
             fetchSellerStatus()
+        } else if (isLoaded && !user) {
+            setLoading(false) // stop loading if user is not logged in
         }
-    }, [user])
+    }, [user, isLoaded])
+
+    if (!isLoaded) return <Loading/>
 
     if (!user) {
         return (
@@ -100,13 +106,13 @@ export default function CreateStore() {
             </div>
         )
     }
+
     return !loading ? (
         <>
             {!alreadySubmitted ? (
                 <div className="mx-6 min-h-[70vh] my-16">
                     <form onSubmit={e => toast.promise(onSubmitHandler(e), {loading: "Submitting data..."})}
                           className="max-w-7xl mx-auto flex flex-col items-start gap-3 text-slate-500">
-                        {/* Title */}
                         <div>
                             <h1 className="text-3xl ">Add Your <span className="text-slate-800 font-medium">Store</span>
                             </h1>
@@ -153,7 +159,7 @@ export default function CreateStore() {
                                   className="border border-slate-300 outline-slate-400 w-full max-w-lg p-2 rounded resize-none"/>
 
                         <button
-                            className="bg-slate-800 text-white px-12 py-2 rounded mt-10 mb-40 active:scale-95 hover:bg-slate-900 transition ">Submit
+                            className="bg-slate-800 text-white px-12 py-2 rounded mt-10 mb-40 active:scale-95 hover:bg-slate-900 transition">Submit
                         </button>
                     </form>
                 </div>

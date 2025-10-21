@@ -2,11 +2,10 @@
 import {useEffect, useState} from "react"
 import toast from "react-hot-toast"
 import {DeleteIcon, PlusIcon, XIcon} from "lucide-react"
-import {useAuth} from "@clerk/nextjs"
+import {getToken as getCustomToken} from "@/lib/auth";
 import axios from "axios"
 
 export default function AdminCategories() {
-    const {getToken} = useAuth()
     const [categories, setCategories] = useState([])
 
     const [showModal, setShowModal] = useState(false)
@@ -15,7 +14,7 @@ export default function AdminCategories() {
     // ✅ Fetch categories
     const fetchCategories = async () => {
         try {
-            const token = await getToken()
+            const token = await getCustomToken();
             const {data} = await axios.get('/api/admin/category', {
                 headers: {Authorization: `Bearer ${token}`}
             })
@@ -31,7 +30,7 @@ export default function AdminCategories() {
             throw new Error("Category name cannot be empty");
         }
 
-        const token = await getToken()
+        const token = await getCustomToken();
         const {data} = await axios.post(
             '/api/admin/category',
             {category: {name: newCategory.name}},
@@ -49,7 +48,7 @@ export default function AdminCategories() {
         const confirmed = window.confirm("Are you sure you want to delete this category?")
         if (!confirmed) return
 
-        const token = await getToken()
+        const token = await getCustomToken();
         await axios.delete(`/api/admin/category?id=${idOrName}`, {
             headers: {Authorization: `Bearer ${token}`}
         })

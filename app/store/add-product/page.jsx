@@ -3,7 +3,7 @@ import {assets} from "@/assets/assets"
 import Image from "next/image"
 import {useState, useRef, useEffect} from "react"
 import {toast} from "react-hot-toast"
-import {useAuth} from "@clerk/nextjs"
+import {getToken as getCustomToken} from "@/lib/auth";
 import axios from "axios"
 import dynamic from "next/dynamic"
 import {ChevronDown} from "lucide-react";
@@ -24,7 +24,6 @@ export default function StoreAddProduct() {
     })
     const [categories, setCategories] = useState([])
     const [loading, setLoading] = useState(false)
-    const {getToken} = useAuth()
 
     // ✅ Fetch categories from public API (no admin auth needed)
     const fetchCategories = async () => {
@@ -68,7 +67,7 @@ export default function StoreAddProduct() {
                 images[key] && formData.append('images', images[key])
             })
 
-            const token = await getToken()
+            const token = await getCustomToken();
             const {data} = await axios.post('/api/store/product', formData, {
                 headers: {Authorization: `Bearer ${token}`},
             })

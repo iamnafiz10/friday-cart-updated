@@ -4,13 +4,12 @@ import {Star} from 'lucide-react';
 import React, {useState} from 'react'
 import {XIcon} from 'lucide-react';
 import toast from 'react-hot-toast';
-import {useAuth} from "@clerk/nextjs";
+import {getToken as getCustomToken} from "@/lib/auth";
 import {useDispatch} from "react-redux";
 import axios from "axios";
 import {addRating} from "@/lib/features/rating/ratingSlice";
 
 const RatingModal = ({ratingModal, setRatingModal}) => {
-    const {getToken} = useAuth();
     const dispatch = useDispatch();
     const [rating, setRating] = useState(0);
     const [review, setReview] = useState('');
@@ -23,7 +22,7 @@ const RatingModal = ({ratingModal, setRatingModal}) => {
             return toast('Write a short review of at least two words');
         }
         try {
-            const token = await getToken();
+            const token = await getCustomToken();
             const {data} = await axios.post('/api/rating', {
                 productId: ratingModal.productId,
                 orderId: ratingModal.orderId,
