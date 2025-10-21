@@ -11,7 +11,7 @@ export async function POST(request) {
             return NextResponse.json({error: 'Not authorized'}, {status: 401});
         }
 
-        const storeId = await authSeller(user.id);
+        const storeId = await authSeller(user); // ✅ pass user object
         if (!storeId) {
             return NextResponse.json({error: 'Not authorized'}, {status: 401});
         }
@@ -41,7 +41,7 @@ export async function GET(request) {
             return NextResponse.json({error: 'Not authorized'}, {status: 401});
         }
 
-        const storeId = await authSeller(user.id);
+        const storeId = await authSeller(user); // ✅ pass user object
         if (!storeId) {
             return NextResponse.json({error: 'Not authorized'}, {status: 401});
         }

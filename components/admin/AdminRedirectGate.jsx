@@ -30,13 +30,7 @@ export default function AdminRedirectGate({children}) {
         verifyAdmin();
     }, [router]);
 
-    if (isAuthorized === null) {
-        return (
-            <div className="min-h-[80vh] flex items-center justify-center text-gray-500">
-                Checking admin access...
-            </div>
-        );
-    }
+    if (isAuthorized === null) return null;
 
     if (!isAuthorized) return null;
 

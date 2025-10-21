@@ -1,7 +1,7 @@
 import StoreLayout from "@/components/store/StoreLayout";
 import ClientStoreGate from "@/components/store/ClientStoreGate";
 
-export default function RootStoreLayout({ children }) {
+export default function RootStoreLayout({children}) {
     return (
         <StoreLayout>
             <ClientStoreGate>

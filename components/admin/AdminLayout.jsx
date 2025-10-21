@@ -1,6 +1,4 @@
 'use client';
-
-import Loading from "../Loading";
 import Link from "next/link";
 import {ArrowRightIcon} from "lucide-react";
 import AdminNavbar from "./AdminNavbar";
@@ -10,7 +8,7 @@ import {useCurrentUser} from "@/lib/auth";
 export default function AdminLayout({children}) {
     const {user, isLoaded} = useCurrentUser();
 
-    if (!isLoaded) return <Loading/>;
+    if (!isLoaded) return null;
 
     // If not admin or not logged in
     if (!user || !user.isAdmin) {

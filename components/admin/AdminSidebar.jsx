@@ -1,7 +1,13 @@
 'use client'
 
 import {usePathname} from "next/navigation"
-import {HomeIcon, PlusSquareIcon, ShieldCheckIcon, StoreIcon, TicketPercentIcon} from "lucide-react"
+import {
+    HomeIcon,
+    PlusSquareIcon,
+    ShieldCheckIcon,
+    StoreIcon,
+    TicketPercentIcon
+} from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import {useCurrentUser} from "@/lib/auth"
@@ -9,13 +15,32 @@ import {useEffect, useState} from "react"
 
 const AdminSidebar = () => {
     const {user: currentUser, isLoaded} = useCurrentUser()
-    const [user, setUser] = useState(currentUser) // local state
+    const [user, setUser] = useState(currentUser)
     const pathname = usePathname()
 
-    // Update local user if currentUser changes (first load)
+    // ✅ Sync from useCurrentUser()
     useEffect(() => {
         setUser(currentUser)
     }, [currentUser])
+
+    // ✅ Also listen for localStorage updates (when profile updated in modal)
+    useEffect(() => {
+        const handleStorageChange = () => {
+            const updatedUser = JSON.parse(localStorage.getItem("user"))
+            if (updatedUser) setUser(updatedUser)
+        }
+
+        // Listen for both local and cross-tab updates
+        window.addEventListener("storage", handleStorageChange)
+        window.addEventListener("user-updated", handleStorageChange) // custom event
+
+        return () => {
+            window.removeEventListener("storage", handleStorageChange)
+            window.removeEventListener("user-updated", handleStorageChange)
+        }
+    }, [])
+
+    if (!user) return null
 
     const sidebarLinks = [
         {name: 'Dashboard', href: '/admin', icon: HomeIcon},
@@ -24,8 +49,6 @@ const AdminSidebar = () => {
         {name: 'Approve Store', href: '/admin/approve', icon: ShieldCheckIcon},
         {name: 'Coupons', href: '/admin/coupons', icon: TicketPercentIcon},
     ]
-
-    if (!user) return null
 
     return (
         <div className="inline-flex h-full flex-col gap-5 border-r border-slate-200 sm:min-w-60">

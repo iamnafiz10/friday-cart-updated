@@ -3,12 +3,12 @@ import StoreInfo from "@/components/admin/StoreInfo";
 import Loading from "@/components/Loading";
 import {useEffect, useState} from "react";
 import toast from "react-hot-toast";
-import { useCurrentUser, getToken as getCustomToken } from "@/lib/auth";
+import {useCurrentUser, getToken as getCustomToken} from "@/lib/auth";
 import axios from "axios";
 
 export default function AdminApprove() {
 
-    const { user, isLoaded } = useCurrentUser();
+    const {user, isLoaded} = useCurrentUser();
     const [stores, setStores] = useState([])
     const [loading, setLoading] = useState(true)
 

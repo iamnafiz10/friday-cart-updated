@@ -9,12 +9,12 @@ export async function POST(request) {
     try {
         const user = await getCurrentUser(request);
         if (!user) {
-            return NextResponse.json({error: 'Not authorized'}, {status: 401});
+            return NextResponse.json({error: "Not authorized"}, {status: 401});
         }
 
-        const storeId = await authSeller(user.id);
+        const storeId = await authSeller(user);
         if (!storeId) {
-            return NextResponse.json({error: 'Not authorized'}, {status: 401});
+            return NextResponse.json({error: "Not authorized"}, {status: 401});
         }
 
         // Get the data from the form
@@ -27,7 +27,7 @@ export async function POST(request) {
         const images = formData.getAll("images");
 
         if (!name || !description || !mrp || !price || !category || images.length < 1) {
-            return NextResponse.json({error: 'Missing product details'}, {status: 400});
+            return NextResponse.json({error: "Missing product details"}, {status: 400});
         }
 
         // Upload images to ImageKit
@@ -72,12 +72,12 @@ export async function GET(request) {
     try {
         const user = await getCurrentUser(request);
         if (!user) {
-            return NextResponse.json({error: 'Not authorized'}, {status: 401});
+            return NextResponse.json({error: "Not authorized"}, {status: 401});
         }
 
-        const storeId = await authSeller(user.id);
+        const storeId = await authSeller(user);
         if (!storeId) {
-            return NextResponse.json({error: 'Not authorized'}, {status: 401});
+            return NextResponse.json({error: "Not authorized"}, {status: 401});
         }
 
         const products = await prisma.product.findMany({where: {storeId}});

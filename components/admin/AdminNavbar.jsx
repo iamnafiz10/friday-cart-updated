@@ -11,10 +11,15 @@ import ManageAccountModal from "@/components/ManageAccountModal"
 
 const AdminNavbar = () => {
     const router = useRouter()
-    const {user} = useCurrentUser()
+    const {user: currentUser} = useCurrentUser()
+    const [user, setUser] = useState(currentUser)
     const [dropdownOpen, setDropdownOpen] = useState(false)
     const [manageAccountOpen, setManageAccountOpen] = useState(false)
     const dropdownRef = useRef(null)
+
+    useEffect(() => {
+        setUser(currentUser)
+    }, [currentUser])
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -128,8 +133,7 @@ const AdminNavbar = () => {
                 isOpen={manageAccountOpen}
                 onClose={() => setManageAccountOpen(false)}
                 user={user}
-                setUser={() => {
-                }}
+                setUser={setUser}
             />
         </>
     )

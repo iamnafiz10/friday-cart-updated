@@ -28,13 +28,23 @@ export async function GET(req) {
                 name: true,
                 email: true,
                 image: true,
-                isAdmin: true, // ✅ IMPORTANT: include this!
+                isAdmin: true,
             },
         });
 
         if (!user) return NextResponse.json({user: null}, {status: 404});
 
-        return NextResponse.json({user}, {status: 200});
+        // ✅ Fetch store associated with this user
+        const store = await prisma.store.findFirst({
+            where: {userId: user.id, isActive: true},
+        });
+
+        return NextResponse.json({
+            user: {
+                ...user,
+                store: store || null, // attach store info or null
+            },
+        }, {status: 200});
     } catch (err) {
         console.error("[ME_ERROR]", err);
         return NextResponse.json({user: null}, {status: 500});

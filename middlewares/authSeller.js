@@ -9,7 +9,6 @@ const authSeller = async (user) => {
             include: {store: true},
         });
 
-        // Check if user has an approved store
         if (dbUser?.store && dbUser.store.status === "approved") {
             return dbUser.store.id;
         }

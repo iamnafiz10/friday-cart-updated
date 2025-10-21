@@ -83,6 +83,7 @@ export default function ManageAccountModal({isOpen, onClose, user, setUser}) {
 
             if (setUser) setUser(data.user);
             localStorage.setItem("user", JSON.stringify(data.user));
+            window.dispatchEvent(new Event("user-updated"));
 
             setName("");
             setEmail("");
