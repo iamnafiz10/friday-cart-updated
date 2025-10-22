@@ -330,7 +330,10 @@ export default function ManageAccountModal({isOpen, onClose, user, setUser}) {
                     <div className="bg-white rounded-lg w-full max-w-md p-6 shadow-xl animate-fadeIn">
                         <h5 className="text-lg font-semibold text-red-600 mb-3">Confirm Delete Account</h5>
                         <p className="text-sm text-slate-600 mb-4">
-                            Please enter your password to confirm. This action is <strong>permanent</strong>.
+                            Please enter your password to confirm.
+                            <span className="text-red-500"> Your Store Will Also Be Deleted.</span>
+                            <br/>
+                            This action is <strong>permanent</strong>.
                         </p>
                         <input
                             type="password"
