@@ -14,6 +14,7 @@ import {useEffect, useRef, useState} from "react";
 import {useSelector} from "react-redux";
 import toast from "react-hot-toast";
 import ManageAccountModal from "@/components/ManageAccountModal";
+import {usePathname} from "next/navigation";
 
 const Navbar = () => {
     const router = useRouter();
@@ -146,7 +147,21 @@ const Navbar = () => {
     };
 
     const [manageAccountOpen, setManageAccountOpen] = useState(false);
+    const pathname = usePathname();
 
+    const [userStore, setUserStore] = useState(null);
+
+// Fetch user store on mount or when user changes
+    useEffect(() => {
+        if (user) {
+            fetch(`/api/store/get?userId=${user.id}`)
+                .then(res => res.json()) // now this will be valid JSON
+                .then(data => setUserStore(data.store))
+                .catch(err => console.error(err));
+        } else {
+            setUserStore(null);
+        }
+    }, [user]);
     return (
         <>
             <nav className="relative bg-white shadow-sm">
@@ -160,10 +175,30 @@ const Navbar = () => {
 
                         {/* Desktop Menu */}
                         <div className="hidden sm:flex items-center gap-4 lg:gap-8 text-slate-600">
-                            <Link href="/">Home</Link>
-                            <Link href="/shop">Shop</Link>
-                            <Link href="/about">About</Link>
-                            <Link href="/contact">Contact</Link>
+                            <Link
+                                href="/"
+                                className={`hover:text-green-500 ${pathname === '/' ? 'text-green-500' : 'text-slate-600'}`}
+                            >
+                                Home
+                            </Link>
+                            <Link
+                                href="/shop"
+                                className={`hover:text-green-500 ${pathname === '/shop' ? 'text-green-500' : 'text-slate-600'}`}
+                            >
+                                Shop
+                            </Link>
+                            <Link
+                                href="/about"
+                                className={`hover:text-green-500 ${pathname === '/about' ? 'text-green-500' : 'text-slate-600'}`}
+                            >
+                                About
+                            </Link>
+                            <Link
+                                href="/contact"
+                                className={`hover:text-green-500 ${pathname === '/contact' ? 'text-green-500' : 'text-slate-600'}`}
+                            >
+                                Contact
+                            </Link>
 
                             {/* Search */}
                             <form
@@ -247,13 +282,32 @@ const Navbar = () => {
                                                     <Settings size={16} className="text-green-500"/>
                                                     Manage Account
                                                 </button>
-                                                <button
-                                                    onClick={() => router.push("/orders")}
-                                                    className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition"
+                                                <Link href='/orders' onClick={() => setDesktopDropdownOpen(false)}
+                                                      className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition"
                                                 >
                                                     <Package size={16} className="text-green-500"/>
                                                     My Orders
-                                                </button>
+                                                </Link>
+                                                {userStore && (
+                                                    <Link
+                                                        href={`/store`}
+                                                        onClick={() => setDesktopDropdownOpen(false)}
+                                                        className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition"
+                                                    >
+                                                        <Package size={16} className="text-green-500"/>
+                                                        My Store
+                                                    </Link>
+                                                )}
+                                                {user.isAdmin && (
+                                                    <Link
+                                                        href="/admin"
+                                                        onClick={() => setDesktopDropdownOpen(false)}
+                                                        className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition"
+                                                    >
+                                                        <Settings size={16} className="text-green-500"/>
+                                                        Admin Panel
+                                                    </Link>
+                                                )}
                                                 <button
                                                     onClick={handleLogout}
                                                     className="flex items-center gap-3 px-5 py-2.5 text-left text-red-500 hover:bg-red-50 transition font-medium"
@@ -317,33 +371,56 @@ const Navbar = () => {
                                                 )}
                                                 <div>
                                                     <p className="font-semibold text-slate-700 text-sm">{user.name}</p>
-                                                    <p className="text-xs text-slate-500 break-all whitespace-normal">
-                                                        {user.email}
-                                                    </p>
+                                                    <p className="text-xs text-slate-500 break-all whitespace-normal">{user.email}</p>
                                                 </div>
                                             </div>
 
                                             <div
                                                 className="flex flex-col text-sm text-slate-700 divide-y divide-green-100">
+                                                {/* Standardized button/link */}
                                                 <button
                                                     onClick={() => setManageAccountOpen(true)}
-                                                    className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition"
+                                                    className="flex items-center gap-3 px-4 py-2.5 text-left hover:bg-green-50 transition"
                                                 >
                                                     <Settings size={16} className="text-green-500"/>
                                                     Manage Account
                                                 </button>
-                                                <button
-                                                    onClick={() => router.push("/orders")}
-                                                    className="flex items-center gap-2 px-4 py-2.5 text-left hover:bg-green-50 transition"
+
+                                                <Link
+                                                    href='/orders'
+                                                    onClick={() => setMobileDropdownOpen(false)}
+                                                    className="flex items-center gap-3 px-4 py-2.5 text-left hover:bg-green-50 transition"
                                                 >
-                                                    <Package size={15} className="text-green-500"/>
+                                                    <Package size={16} className="text-green-500"/>
                                                     My Orders
-                                                </button>
+                                                </Link>
+
+                                                {userStore && (
+                                                    <Link
+                                                        href={`/store`}
+                                                        onClick={() => setMobileDropdownOpen(false)}
+                                                        className="flex items-center gap-3 px-4 py-2.5 text-left hover:bg-green-50 transition"
+                                                    >
+                                                        <Package size={16} className="text-green-500"/>
+                                                        My Store
+                                                    </Link>
+                                                )}
+                                                {user.isAdmin && (
+                                                    <Link
+                                                        href="/admin"
+                                                        onClick={() => setMobileDropdownOpen(false)}
+                                                        className="flex items-center gap-3 px-4 py-2.5 text-left hover:bg-green-50 transition"
+                                                    >
+                                                        <Settings size={16} className="text-green-500"/>
+                                                        Admin Panel
+                                                    </Link>
+                                                )}
+
                                                 <button
                                                     onClick={handleLogout}
-                                                    className="flex items-center gap-2 px-4 py-2.5 text-left text-red-500 hover:bg-red-50 transition font-medium"
+                                                    className="flex items-center gap-3 px-4 py-2.5 text-left text-red-500 hover:bg-red-50 transition font-medium"
                                                 >
-                                                    <LogOut size={15}/>
+                                                    <LogOut size={16}/>
                                                     Sign Out
                                                 </button>
                                             </div>

@@ -2,7 +2,7 @@ import {NextResponse} from "next/server";
 import prisma from "@/lib/prisma";
 import {getCurrentUser} from "@/lib/serverAuth";
 
-// Place an order
+// 🛒 Place an order
 export async function POST(request) {
     try {
         const user = await getCurrentUser(request);
@@ -12,11 +12,18 @@ export async function POST(request) {
 
         const {addressId, items, couponCode, paymentMethod} = await request.json();
 
-        // Validate input
+        // ✅ Validate input
         if (!addressId || !paymentMethod || !items || !Array.isArray(items) || items.length === 0) {
             return NextResponse.json({error: "Missing order details"}, {status: 400});
         }
 
+        // ✅ Fetch address to store snapshot
+        const address = await prisma.address.findUnique({where: {id: addressId}});
+        if (!address) {
+            return NextResponse.json({error: "Address not found"}, {status: 404});
+        }
+
+        // ✅ Coupon validation
         let coupon = null;
         if (couponCode) {
             coupon = await prisma.coupon.findUnique({
@@ -27,15 +34,15 @@ export async function POST(request) {
             }
         }
 
-        // Coupon for new users
+        // ✅ Coupon for new users only
         if (coupon?.forNewUser) {
-            const userOrders = await prisma.order.findMany({where: {userId: user.id}});
-            if (userOrders.length > 0) {
+            const userOrders = await prisma.order.count({where: {userId: user.id}});
+            if (userOrders > 0) {
                 return NextResponse.json({error: "Coupon valid for new users only"}, {status: 400});
             }
         }
 
-        // Group items by store
+        // ✅ Group items by store
         const ordersByStore = new Map();
         for (const item of items) {
             const product = await prisma.product.findUnique({where: {id: item.id}});
@@ -47,15 +54,15 @@ export async function POST(request) {
 
         let isShippingFeeAdded = false;
 
-        // Create orders per store
+        // ✅ Create orders per store
         for (const [storeId, sellerItems] of ordersByStore.entries()) {
             let total = sellerItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
             if (coupon) total -= (total * coupon.discount) / 100;
 
-            // Add shipping fee once
+            // Add shipping fee once (per full checkout, not per store)
             if (!isShippingFeeAdded) {
-                total += 5; // shipping fee
+                total += 5;
                 isShippingFeeAdded = true;
             }
 
@@ -68,8 +75,16 @@ export async function POST(request) {
                     paymentMethod,
                     isCouponUsed: !!coupon,
                     coupon: coupon || {},
+                    // 🆕 Save address snapshot
+                    shippingAddress: {
+                        name: address.name,
+                        fullAddress: address.fullAddress,
+                        phone: address.phone,
+                        city: address.city,
+                        postalCode: address.postalCode || "",
+                    },
                     orderItems: {
-                        create: sellerItems.map(item => ({
+                        create: sellerItems.map((item) => ({
                             product: {connect: {id: item.id}},
                             quantity: item.quantity,
                             price: item.price,
@@ -79,7 +94,7 @@ export async function POST(request) {
             });
         }
 
-        // Clear cart
+        // ✅ Clear user's cart
         await prisma.user.update({
             where: {id: user.id},
             data: {cart: {}},
@@ -87,12 +102,15 @@ export async function POST(request) {
 
         return NextResponse.json({message: "Order placed successfully"});
     } catch (error) {
-        console.error(error);
-        return NextResponse.json({error: error.message || "Failed to place order"}, {status: 400});
+        console.error("❌ Order creation error:", error);
+        return NextResponse.json(
+            {error: error.message || "Failed to place order"},
+            {status: 400}
+        );
     }
 }
 
-// Get orders for current user
+// 🧾 Get all orders for the current user
 export async function GET(request) {
     try {
         const user = await getCurrentUser(request);
@@ -111,7 +129,10 @@ export async function GET(request) {
 
         return NextResponse.json({orders});
     } catch (error) {
-        console.error(error);
-        return NextResponse.json({error: error.message || "Failed to fetch orders"}, {status: 400});
+        console.error("❌ Fetch orders error:", error);
+        return NextResponse.json(
+            {error: error.message || "Failed to fetch orders"},
+            {status: 400}
+        );
     }
 }

@@ -4,42 +4,41 @@ import {getCurrentUser} from "@/lib/serverAuth";
 
 export async function DELETE(req, context) {
     try {
-        // 🔹 Get current logged-in user
         const user = await getCurrentUser(req);
-        if (!user) {
-            return NextResponse.json({error: "Unauthorized"}, {status: 401});
-        }
+        if (!user) return NextResponse.json({error: "Unauthorized"}, {status: 401});
         const userId = user.id;
 
-        // ✅ Await params (Next.js requirement)
-        const {id} = context.params;
+        const {id} = await context.params; // ✅ await params
 
-        // 🔹 Check if address exists
         const address = await prisma.address.findUnique({where: {id}});
-        if (!address) {
-            return NextResponse.json({error: "Address not found"}, {status: 404});
-        }
-
-        // 🔹 Check if address belongs to current user
-        if (address.userId !== userId) {
+        if (!address) return NextResponse.json({error: "Address not found"}, {status: 404});
+        if (address.userId !== userId)
             return NextResponse.json({error: "Forbidden"}, {status: 403});
-        }
 
-        // 🔹 Check if this address is used in any order
-        const existingOrder = await prisma.order.findFirst({
-            where: {addressId: id},
+        // 🔹 Check for active orders (ORDER_PLACED, CONFIRMED, SHIPPED)
+        const activeOrder = await prisma.order.findFirst({
+            where: {
+                addressId: id,
+                status: {in: ["ORDER_PLACED", "CONFIRMED", "SHIPPED"]},
+            },
         });
 
-        if (existingOrder) {
+        if (activeOrder)
             return NextResponse.json(
-                {
-                    error: "This address is linked to an order and cannot be deleted.",
-                },
+                {error: "This address is connected with an active order"},
                 {status: 400}
             );
-        }
 
-        // ✅ Delete address safely
+        // 🔹 Nullify addressId in CANCELLED or DELIVERED orders
+        await prisma.order.updateMany({
+            where: {
+                addressId: id,
+                status: {in: ["CANCELLED", "DELIVERED"]},
+            },
+            data: {addressId: null},
+        });
+
+        // ✅ Now safe to delete address
         await prisma.address.delete({where: {id}});
 
         return NextResponse.json({message: "Address deleted successfully"});

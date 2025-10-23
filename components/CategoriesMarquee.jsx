@@ -93,7 +93,7 @@ export default function CategoriesMarquee() {
               .animate-scroll {
                 display: flex;
                 width: max-content;
-                animation: scroll 25s linear infinite;
+                animation: scroll 70s linear infinite;
               }
             `}</style>
         </div>
