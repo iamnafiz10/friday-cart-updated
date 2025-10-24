@@ -160,7 +160,7 @@ function ShopContent() {
                     <p className="text-slate-400 text-center mt-12">No products found.</p>
                 ) : (
                     <>
-                        <div className="grid grid-cols-2 sm:flex flex-wrap gap-6 xl:gap-12 mx-auto mb-10">
+                        <div className="grid grid-cols-2 sm:flex flex-wrap gap-6 justify-between mx-auto mb-10">
                             {paginatedProducts.map((product) => (
                                 <ProductCard key={product.id} product={product}/>
                             ))}

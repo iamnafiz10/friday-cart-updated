@@ -125,10 +125,45 @@ export default function Cart() {
                                             />
                                         </Link>
 
-                                        <div className="flex-1">
-                                            <p className="font-medium text-slate-700">{item.name}</p>
-                                            <p className="text-xs text-slate-500">{item.category}</p>
-                                            <p className="text-sm font-semibold">{currency}{item.price}</p>
+                                        <div className="flex-1 mr-8 lg:mr-0">
+
+                                            <p className="flex lg:hidden font-medium text-[15px] text-slate-700">{item.name}</p>
+
+                                            <p className="hidden lg:flex font-medium text-[15px] text-slate-700 leading-tight">
+                                                {(() => {
+                                                    const words = item.name.split(" ");
+                                                    const line1 = words.slice(0, 8).join(" ");
+                                                    const line2 = words.slice(8, 16).join(" ");
+                                                    const line3 = words.slice(16, 22).join(" ");
+                                                    const remaining = words.slice(22).join(" ");
+                                                    return (
+                                                        <>
+                                                            {line1}
+                                                            {line2 && (
+                                                                <>
+                                                                    <br/>
+                                                                    {line2}
+                                                                </>
+                                                            )}
+                                                            {line3 && (
+                                                                <>
+                                                                    <br/>
+                                                                    {line3}
+                                                                </>
+                                                            )}
+                                                            {remaining && (
+                                                                <>
+                                                                    <br/>
+                                                                    {remaining}
+                                                                </>
+                                                            )}
+                                                        </>
+                                                    );
+                                                })()}
+                                            </p>
+
+                                            <p className="text-xs text-gray-400 my-1">{item.category}</p>
+                                            <p className="text-sm font-semibold text-green-500">{currency}{item.price}</p>
                                         </div>
 
                                         {/* Mobile Remove Button */}

@@ -15,7 +15,7 @@ const ProductDetails = ({product}) => {
     const cart = useSelector(state => state.cart.cartItems || {});
     const quantity = cart[product.id] || 0;
 
-    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '$';
+    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '৳';
     const [mainImage, setMainImage] = useState(product.images[0]);
 
     const addToCartHandler = () => {
@@ -48,7 +48,7 @@ const ProductDetails = ({product}) => {
                         </div>
                     ))}
                 </div>
-                <div className="flex justify-center items-center h-100 sm:size-113 bg-slate-100 rounded-lg">
+                <div className="flex justify-center items-center h-100 sm:size-113 bg-slate-100 rounded-lg overflow-hidden">
                     <Image src={mainImage} alt={product.name || ''} width={250} height={250}/>
                 </div>
             </div>

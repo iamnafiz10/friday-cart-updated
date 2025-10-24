@@ -291,7 +291,7 @@ const OrderSummary = ({totalPrice, items}) => {
                             {currency}
                             {totalPrice.toLocaleString()}
                         </p>
-                        <p>
+                        <p className="text-blue-500">
                             {currency}
                             {shippingFee.toLocaleString()}
                         </p>
@@ -338,7 +338,7 @@ const OrderSummary = ({totalPrice, items}) => {
             {/* Total */}
             <div className="flex justify-between py-4">
                 <p>Total:</p>
-                <p className="font-medium text-right">
+                <p className="font-medium text-right text-green-500 font-semibold">
                     {currency}
                     {finalTotal.toLocaleString()}
                 </p>
