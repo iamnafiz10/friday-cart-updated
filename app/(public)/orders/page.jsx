@@ -9,7 +9,12 @@ import {useRouter} from "next/navigation";
 import Loading from "@/components/Loading";
 import {FilterIcon, ChevronDownIcon} from "lucide-react";
 
+// ✅ IMPORT rating fetch
+import {useDispatch} from "react-redux";
+import {fetchUserRatings} from "@/lib/features/rating/ratingSlice";
+
 export default function Orders() {
+    const dispatch = useDispatch(); // ✅
     const {user, isLoaded} = useCurrentUser();
     const [orders, setOrders] = useState([]);
     const [filteredOrders, setFilteredOrders] = useState([]);
@@ -21,10 +26,16 @@ export default function Orders() {
     const ordersPerPage = 10;
     const router = useRouter();
 
+    // ✅ NEW useEffect to fetch user ratings
+    useEffect(() => {
+        if (user) {
+            dispatch(fetchUserRatings({getToken: getCustomToken}));
+        }
+    }, [user, dispatch]);
+
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                // 🔑 Fetch token for API call
                 const token = await getCustomToken();
                 const {data} = await axios.get("/api/orders", {
                     headers: {Authorization: `Bearer ${token}`},
@@ -51,20 +62,17 @@ export default function Orders() {
         }
     }, [isLoaded, user, router]);
 
-// ✅ Handle filter change
     const handleFilterChange = (status) => {
         setFilterStatus(status);
         setFilterOpen(false);
         if (status === "All") {
             setFilteredOrders(orders);
         } else {
-            const filtered = orders.filter((order) => order.status === status);
-            setFilteredOrders(filtered);
+            setFilteredOrders(orders.filter(o => o.status === status));
         }
         setCurrentPage(1);
     };
 
-// ✅ Click outside to close dropdown
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -77,14 +85,12 @@ export default function Orders() {
 
     if (!isLoaded || loading) return <Loading/>;
 
-    const hasPlacedOrder = orders.some((order) => order.status === "ORDER_PLACED");
+    const hasPlacedOrder = orders.some(order => order.status === "ORDER_PLACED");
 
     const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
     const indexOfLastOrder = currentPage * ordersPerPage;
-    const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-    const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+    const currentOrders = filteredOrders.slice(indexOfLastOrder - ordersPerPage, indexOfLastOrder);
 
-// ✅ Empty state message
     const emptyMessages = {
         ORDER_PLACED: "You have no placed orders.",
         CONFIRMED: "You have no confirmed orders.",
@@ -93,9 +99,9 @@ export default function Orders() {
         CANCELLED: "You have no cancelled orders.",
         All: "You have no orders.",
     };
+
     return (
         <div className="min-h-[70vh] mx-6 relative">
-            {/* ✅ Bangla Alert */}
             {hasPlacedOrder && (
                 <div className="max-w-3xl mx-auto my-10 animate-fadeIn">
                     <div
@@ -115,7 +121,6 @@ export default function Orders() {
                 </div>
             )}
 
-            {/* ✅ Orders + Filter Header */}
             {orders.length > 0 ? (
                 <div className="mb-20 mt-10 max-w-7xl mx-auto">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -125,7 +130,6 @@ export default function Orders() {
                             linkText={"Go to home"}
                         />
 
-                        {/* ✅ Custom Filter Dropdown */}
                         <div className="relative" ref={dropdownRef}>
                             <button
                                 onClick={() => setFilterOpen(!filterOpen)}
@@ -140,7 +144,7 @@ export default function Orders() {
                             {filterOpen && (
                                 <div
                                     className="absolute right-0 mt-2 w-44 bg-white border border-emerald-100 rounded-lg shadow-md z-20">
-                                    {["All", "ORDER_PLACED", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"].map((status) => (
+                                    {["All", "ORDER_PLACED", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"].map(status => (
                                         <button
                                             key={status}
                                             onClick={() => handleFilterChange(status)}
@@ -148,8 +152,7 @@ export default function Orders() {
                                                 filterStatus === status ? "text-emerald-600 font-semibold" : "text-gray-700"
                                             }`}
                                         >
-                                            {status === "All"
-                                                ? "All Orders"
+                                            {status === "All" ? "All Orders"
                                                 : status.replace("_", " ").toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase())}
                                         </button>
                                     ))}
@@ -158,7 +161,6 @@ export default function Orders() {
                         </div>
                     </div>
 
-                    {/* ✅ Orders Table */}
                     {filteredOrders.length > 0 ? (
                         <>
                             <table
@@ -172,26 +174,25 @@ export default function Orders() {
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {currentOrders.map((order) => (
+                                {currentOrders.map(order => (
                                     <OrderItem order={order} key={order.id}/>
                                 ))}
                                 </tbody>
                             </table>
 
-                            {/* ✅ Pagination */}
                             {totalPages > 1 && (
                                 <div className="flex justify-center mt-12 gap-2">
-                                    {[...Array(totalPages)].map((_, index) => (
+                                    {[...Array(totalPages)].map((_, i) => (
                                         <button
-                                            key={index}
-                                            onClick={() => setCurrentPage(index + 1)}
+                                            key={i}
+                                            onClick={() => setCurrentPage(i + 1)}
                                             className={`px-4 py-2 rounded-lg border transition-all ${
-                                                currentPage === index + 1
+                                                currentPage === i + 1
                                                     ? "bg-emerald-600 text-white border-emerald-600"
                                                     : "bg-white text-emerald-600 border-emerald-300 hover:bg-emerald-50"
                                             }`}
                                         >
-                                            {index + 1}
+                                            {i + 1}
                                         </button>
                                     ))}
                                 </div>
@@ -209,7 +210,6 @@ export default function Orders() {
                 </div>
             )}
 
-            {/* ✅ Animation */}
             <style jsx>{`
               @keyframes fadeIn {
                 from {

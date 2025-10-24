@@ -56,7 +56,7 @@ const RatingModal = ({ratingModal, setRatingModal}) => {
                 </div>
                 <textarea
                     className='w-full p-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-green-400'
-                    placeholder='Write your review (optional)'
+                    placeholder='Write your review'
                     rows='4'
                     value={review}
                     onChange={(e) => setReview(e.target.value)}

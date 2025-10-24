@@ -1,5 +1,5 @@
 'use client'
-import {ArrowRight, StarIcon} from "lucide-react"
+import {ArrowRight, StarIcon, UserCircle2} from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import {useState} from "react"
@@ -32,11 +32,20 @@ const ProductDescription = ({product}) => {
 
             {/* Reviews */}
             {selectedTab === "Reviews" && (
-                <div className="flex flex-col gap-3 mt-14">
+                <div className="flex flex-col gap-3 mt-10">
                     {product.rating.map((item, index) => (
-                        <div key={index} className="flex gap-5 mb-10">
-                            <Image src={item.user.image} alt="" className="size-10 rounded-full" width={100}
-                                   height={100}/>
+                        <div key={index} className="flex gap-3 mb-10">
+                            {item.user?.image ? (
+                                <Image
+                                    src={item.user.image}
+                                    alt={item.user.name || "User Avatar"}
+                                    className="size-10 rounded-full object-cover"
+                                    width={100}
+                                    height={100}
+                                />
+                            ) : (
+                                <UserCircle2 size={40} className="text-green-500"/>
+                            )}
                             <div>
                                 <div className="flex items-center">
                                     {Array(5).fill('').map((_, index) => (
@@ -45,8 +54,8 @@ const ProductDescription = ({product}) => {
                                     ))}
                                 </div>
                                 <p className="text-sm max-w-lg my-4">{item.review}</p>
-                                <p className="font-medium text-slate-800">{item.user.name}</p>
-                                <p className="mt-3 font-light">{new Date(item.createdAt).toDateString()}</p>
+                                <p className="font-semibold text-slate-800">{item.user.name}</p>
+                                <p className="mt-0 text-[12px] text-gray-400">{new Date(item.createdAt).toDateString()}</p>
                             </div>
                         </div>
                     ))}
