@@ -16,14 +16,22 @@ export default function Dashboard() {
         totalEarnings: 0,
         totalOrders: 0,
         ratings: [],
+        totalConfirmedOrders: 0,
+        totalShippedOrders: 0,
+        totalCancelledOrders: 0,
+        totalDeliveredOrders: 0,
     });
     const [hasStore, setHasStore] = useState(true);
 
     const dashboardCardsData = [
         {title: 'Total Products', value: dashboardData.totalProducts, icon: ShoppingBasketIcon},
         {title: 'Total Earnings', value: currency + dashboardData.totalEarnings, icon: CircleDollarSignIcon},
-        {title: 'Total Orders', value: dashboardData.totalOrders, icon: TagsIcon},
         {title: 'Total Ratings', value: dashboardData.ratings.length, icon: StarIcon},
+        {title: 'Total Orders', value: dashboardData.totalOrders, icon: TagsIcon},
+        {title: 'Confirmed Orders', value: dashboardData.totalConfirmedOrders, icon: TagsIcon},
+        {title: 'Shipped Orders', value: dashboardData.totalShippedOrders, icon: TagsIcon},
+        {title: 'Cancelled Orders', value: dashboardData.totalCancelledOrders, icon: TagsIcon},
+        {title: 'Delivered Orders', value: dashboardData.totalDeliveredOrders, icon: TagsIcon},
     ];
 
     const fetchDashboardData = async () => {
@@ -69,9 +77,18 @@ export default function Dashboard() {
         <div className="text-slate-500 mb-28">
             <h1 className="text-2xl">Seller <span className="text-slate-800 font-medium">Dashboard</span></h1>
 
-            <div className="flex flex-wrap gap-5 my-10 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 my-10 mt-4">
                 {dashboardCardsData.map((card, index) => (
-                    <div key={index} className="flex items-center gap-11 border border-slate-200 p-3 px-6 rounded-lg">
+                    <div key={index}
+                         className={`flex items-center justify-between border border-slate-200 p-3 px-6 rounded-lg
+                           ${
+                             card.title === "Delivered Orders" ? "text-green-600 bg-green-100" :
+                                 card.title === "Cancelled Orders" ? "text-red-600 bg-red-100" :
+                                     card.title === "Shipped Orders" ? "text-yellow-600 bg-yellow-100" :
+                                         card.title === "Confirmed Orders" ? "text-blue-600 bg-blue-100" :
+                                             "bg-white text-slate-600"
+                         }
+                         `}>
                         <div className="flex flex-col gap-3 text-xs">
                             <p>{card.title}</p>
                             <b className="text-2xl font-medium text-slate-700">{card.value}</b>

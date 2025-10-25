@@ -69,7 +69,7 @@ const Footer = () => {
 
                 if (products.length > 0) {
                     const shuffled = [...products].sort(() => 0.5 - Math.random());
-                    setRandomProducts(shuffled.slice(0, 4));
+                    setRandomProducts(shuffled.slice(0, 3));
                 } else {
                     setRandomProducts([]);
                 }
@@ -109,7 +109,6 @@ const Footer = () => {
             links: [
                 {text: "Home", path: "/", icon: null},
                 {text: "Privacy Policy", path: "/privacy-policy", icon: null},
-                {text: "Become Plus Member", path: "/pricing", icon: null},
                 {text: "Create Your Store", path: "/create-store", icon: null},
             ],
         },

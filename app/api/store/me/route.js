@@ -8,7 +8,7 @@ export async function GET(req) {
         if (!user) return NextResponse.json({store: null});
 
         const store = await prisma.store.findFirst({
-            where: {userId: user.id, status: "approved"},
+            where: {userId: user.id},
         });
 
         return NextResponse.json({store});
