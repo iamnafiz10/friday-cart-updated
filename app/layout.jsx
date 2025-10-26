@@ -2,6 +2,7 @@ import {Outfit} from "next/font/google";
 import {Toaster} from "react-hot-toast";
 import StoreProvider from "@/app/StoreProvider";
 import "./globals.css";
+import ScrollHandler from "@/components/ScrollHandler";
 
 const outfit = Outfit({
     subsets: ["latin"],
@@ -20,6 +21,7 @@ export default function RootLayout({children}) {
         <body className={`${outfit.className} antialiased`}>
         <StoreProvider>
             <Toaster/>
+            <ScrollHandler/>
             {children}
         </StoreProvider>
         </body>

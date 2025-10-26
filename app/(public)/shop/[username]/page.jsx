@@ -12,15 +12,16 @@ export default function StoreShop() {
     const {username} = useParams()
     const [products, setProducts] = useState([])
     const [storeInfo, setStoreInfo] = useState(null)
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(true) // ✅ show loading while fetching
     const [currentPage, setCurrentPage] = useState(1)
     const productsPerPage = 12
 
     const fetchStoreData = async () => {
+        setLoading(true)
         try {
             const {data} = await axios.get(`/api/store/data?username=${username}`)
             setStoreInfo(data.store)
-            setProducts(data.store.Product)
+            setProducts((data.store?.Product || []).filter(p => p.inStock))
         } catch (error) {
             toast.error(error?.response?.data?.error || error.message)
         }
@@ -29,9 +30,9 @@ export default function StoreShop() {
 
     useEffect(() => {
         fetchStoreData()
-    }, [])
+    }, [username])
 
-    // ✅ Pagination logic
+    // Pagination
     const totalPages = Math.ceil(products.length / productsPerPage)
     const startIndex = (currentPage - 1) * productsPerPage
     const endIndex = startIndex + productsPerPage
@@ -42,7 +43,9 @@ export default function StoreShop() {
         window.scrollTo({top: 0, behavior: "smooth"})
     }
 
-    return !loading ? (
+    if (loading) return <Loading message="Loading store products..."/>
+
+    return (
         <div className="min-h-[70vh] mx-6">
             {/* Store Info Banner */}
             {storeInfo && (
@@ -78,13 +81,17 @@ export default function StoreShop() {
                     Shop <span className="text-slate-800 font-medium">Products</span>
                 </h1>
 
-                <div className="mt-12 gap-6 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                    {paginatedProducts.map((product) => (
-                        <ProductCard key={product.id} product={product}/>
-                    ))}
-                </div>
+                {paginatedProducts.length === 0 ? (
+                    <p className="text-center text-slate-400 mt-12">No products found.</p>
+                ) : (
+                    <div className="mt-12 gap-6 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                        {paginatedProducts.map((product) => (
+                            <ProductCard key={product.id} product={product}/>
+                        ))}
+                    </div>
+                )}
 
-                {/* ✅ Pagination */}
+                {/* Pagination */}
                 {totalPages > 1 && (
                     <div className="flex justify-center items-center gap-2 mb-20">
                         {Array.from({length: totalPages}).map((_, index) => {
@@ -107,7 +114,5 @@ export default function StoreShop() {
                 )}
             </div>
         </div>
-    ) : (
-        <Loading/>
     )
 }

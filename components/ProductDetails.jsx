@@ -7,6 +7,7 @@ import {useState} from "react";
 import Image from "next/image";
 import {useDispatch, useSelector} from "react-redux";
 import Counter from "./Counter";
+import toast from "react-hot-toast";
 
 const ProductDetails = ({product}) => {
     const dispatch = useDispatch();
@@ -20,6 +21,10 @@ const ProductDetails = ({product}) => {
 
     const addToCartHandler = () => {
         dispatch(addToCart({productId: product.id}));
+        // ✅ Show toast only when product is newly added
+        if (quantity === 0) {
+            toast.success("পণ্যটি কার্টে যোগ করা হয়েছে");
+        }
     };
 
     const orderNowHandler = () => {
@@ -97,7 +102,7 @@ const ProductDetails = ({product}) => {
                         onClick={() => quantity === 0 ? addToCartHandler() : router.push('/cart')}
                         className="bg-slate-800 text-white px-10 py-3 text-sm font-medium rounded hover:bg-slate-900 active:scale-95 transition"
                     >
-                        {quantity === 0 ? 'Add to Cart' : 'View Cart'}
+                        {quantity === 0 ? 'কার্টে রাখুন' : 'কার্ট দেখুন'}
                     </button>
 
                     {/* ✅ Order Now Button */}
@@ -105,7 +110,7 @@ const ProductDetails = ({product}) => {
                         onClick={orderNowHandler}
                         className="bg-green-600 text-white px-10 py-3 text-sm font-medium rounded hover:bg-green-700 active:scale-95 transition"
                     >
-                        Order Now
+                        অর্ডার করুন
                     </button>
                 </div>
 
