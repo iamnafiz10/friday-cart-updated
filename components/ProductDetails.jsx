@@ -22,6 +22,11 @@ const ProductDetails = ({product}) => {
         dispatch(addToCart({productId: product.id}));
     };
 
+    const orderNowHandler = () => {
+        dispatch(addToCart({productId: product.id}));
+        router.push('/cart');
+    };
+
     const averageRating =
         product.rating && product.rating.length > 0
             ? product.rating.reduce((acc, item) => acc + item.rating, 0) / product.rating.length
@@ -48,7 +53,8 @@ const ProductDetails = ({product}) => {
                         </div>
                     ))}
                 </div>
-                <div className="flex justify-center items-center h-100 sm:size-113 bg-slate-100 rounded-lg overflow-hidden">
+                <div
+                    className="flex justify-center items-center h-100 sm:size-113 bg-slate-100 rounded-lg overflow-hidden">
                     <Image src={mainImage} alt={product.name || ''} width={250} height={250}/>
                 </div>
             </div>
@@ -83,14 +89,23 @@ const ProductDetails = ({product}) => {
                         now</p>
                 </div>
 
-                {/* Add to Cart / Counter */}
+                {/* Add to Cart / View Cart Button */}
                 <div className="flex items-end gap-5 mt-10">
                     {quantity > 0 && <Counter productId={product.id}/>}
+                    {/*Add to cart button*/}
                     <button
                         onClick={() => quantity === 0 ? addToCartHandler() : router.push('/cart')}
                         className="bg-slate-800 text-white px-10 py-3 text-sm font-medium rounded hover:bg-slate-900 active:scale-95 transition"
                     >
                         {quantity === 0 ? 'Add to Cart' : 'View Cart'}
+                    </button>
+
+                    {/* ✅ Order Now Button */}
+                    <button
+                        onClick={orderNowHandler}
+                        className="bg-green-600 text-white px-10 py-3 text-sm font-medium rounded hover:bg-green-700 active:scale-95 transition"
+                    >
+                        Order Now
                     </button>
                 </div>
 

@@ -164,13 +164,13 @@ export default function Orders() {
                     {filteredOrders.length > 0 ? (
                         <>
                             <table
-                                className="w-full max-w-5xl text-slate-500 table-auto border-separate border-spacing-y-12 border-spacing-x-4 mt-6">
-                                <thead>
+                                className="w-full text-slate-500 border-collapse table-auto border-separate border-spacing-y-10 border-spacing-x-4">
+                                <thead className="bg-green-100">
                                 <tr className="max-sm:text-sm text-slate-600 max-md:hidden">
-                                    <th className="text-left">Product</th>
-                                    <th className="text-center">Total Price</th>
-                                    <th className="text-left">Address</th>
-                                    <th className="text-left">Status</th>
+                                    <th className="text-left pl-3">Product</th>
+                                    <th className="text-center w-[100px]">Total Price</th>
+                                    <th className="text-left pl-3">Address</th>
+                                    <th className="text-left pl-3 w-[140px]">Status</th>
                                 </tr>
                                 </thead>
                                 <tbody>

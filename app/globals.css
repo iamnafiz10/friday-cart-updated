@@ -18,7 +18,9 @@ option {
     font-family: 'Outfit', sans-serif !important;
 }
 
-
+.custom_title_class .flex-col {
+    align-items: start;
+}
 
 @layer components {
     @keyframes marqueeScroll {

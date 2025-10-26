@@ -10,17 +10,16 @@ export async function POST(request) {
             return NextResponse.json({error: "Not authorized"}, {status: 401});
         }
 
-        const {addressId, items, couponCode, paymentMethod} = await request.json();
+        const {address, items, couponCode, paymentMethod} = await request.json();
 
         // ✅ Validate input
-        if (!addressId || !paymentMethod || !items || !Array.isArray(items) || items.length === 0) {
+        if (!address || !paymentMethod || !items || !Array.isArray(items) || items.length === 0) {
             return NextResponse.json({error: "Missing order details"}, {status: 400});
         }
 
-        // ✅ Fetch address to store snapshot
-        const address = await prisma.address.findUnique({where: {id: addressId}});
-        if (!address) {
-            return NextResponse.json({error: "Address not found"}, {status: 404});
+        // Validate required address fields
+        if (!address.name || !address.fullAddress || !address.phone || !address.city) {
+            return NextResponse.json({error: "Incomplete address details"}, {status: 400});
         }
 
         // ✅ Coupon validation
@@ -29,16 +28,13 @@ export async function POST(request) {
             coupon = await prisma.coupon.findUnique({
                 where: {code: couponCode.toUpperCase()},
             });
-            if (!coupon) {
-                return NextResponse.json({error: "Coupon not found"}, {status: 400});
-            }
-        }
+            if (!coupon) return NextResponse.json({error: "Coupon not found"}, {status: 400});
 
-        // ✅ Coupon for new users only
-        if (coupon?.forNewUser) {
-            const userOrders = await prisma.order.count({where: {userId: user.id}});
-            if (userOrders > 0) {
-                return NextResponse.json({error: "Coupon valid for new users only"}, {status: 400});
+            if (coupon.forNewUser) {
+                const userOrders = await prisma.order.count({where: {userId: user.id}});
+                if (userOrders > 0) {
+                    return NextResponse.json({error: "Coupon valid for new users only"}, {status: 400});
+                }
             }
         }
 
@@ -54,15 +50,19 @@ export async function POST(request) {
 
         let isShippingFeeAdded = false;
 
+        // Determine shipping fee based on city
+        const shippingFeeAmount = address.city === "Inside Dhaka" ? 80 : 150;
+
         // ✅ Create orders per store
         for (const [storeId, sellerItems] of ordersByStore.entries()) {
             let total = sellerItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
+            // Apply coupon discount
             if (coupon) total -= (total * coupon.discount) / 100;
 
-            // Add shipping fee once (per full checkout, not per store)
+            // Add shipping fee only once per full checkout
             if (!isShippingFeeAdded) {
-                total += 5;
+                total += shippingFeeAmount;
                 isShippingFeeAdded = true;
             }
 
@@ -70,12 +70,11 @@ export async function POST(request) {
                 data: {
                     user: {connect: {id: user.id}},
                     store: {connect: {id: storeId}},
-                    address: {connect: {id: addressId}},
                     total: parseFloat(total.toFixed(2)),
                     paymentMethod,
                     isCouponUsed: !!coupon,
                     coupon: coupon || {},
-                    // 🆕 Save address snapshot
+                    // Save shipping address snapshot
                     shippingAddress: {
                         name: address.name,
                         fullAddress: address.fullAddress,
@@ -122,7 +121,6 @@ export async function GET(request) {
             where: {userId: user.id},
             include: {
                 orderItems: {include: {product: true}},
-                address: true,
             },
             orderBy: {createdAt: "desc"},
         });

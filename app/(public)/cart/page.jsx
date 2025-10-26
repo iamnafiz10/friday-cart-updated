@@ -4,7 +4,7 @@ import Counter from "@/components/Counter";
 import OrderSummary from "@/components/OrderSummary";
 import PageTitle from "@/components/PageTitle";
 import {deleteItemFromCart, clearCart} from "@/lib/features/cart/cartSlice";
-import {Trash2Icon, ShoppingCart, ShoppingBasket} from "lucide-react"; // 🔹 ShoppingCart icon added
+import {Trash2Icon, ShoppingBasket} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import {useEffect, useState} from "react";

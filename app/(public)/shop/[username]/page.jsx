@@ -78,7 +78,7 @@ export default function StoreShop() {
                     Shop <span className="text-slate-800 font-medium">Products</span>
                 </h1>
 
-                <div className="mt-5 grid grid-cols-2 sm:flex flex-wrap gap-6 justify-between mx-auto mb-10">
+                <div className="mt-12 gap-6 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                     {paginatedProducts.map((product) => (
                         <ProductCard key={product.id} product={product}/>
                     ))}
