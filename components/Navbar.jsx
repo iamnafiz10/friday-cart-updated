@@ -1,212 +1,108 @@
 'use client';
+import {useState, useRef, useEffect} from "react";
+import Link from "next/link";
+import {useRouter, usePathname} from "next/navigation";
+import {useSelector} from "react-redux";
 import {
     Search,
     ShoppingCart,
-    X,
     UserCircle2,
     Settings,
     Package,
-    LogOut
+    LogOut,
+    Menu,
+    X,
 } from "lucide-react";
-import Link from "next/link";
-import {useRouter} from "next/navigation";
-import {useEffect, useRef, useState} from "react";
-import {useSelector} from "react-redux";
-import toast from "react-hot-toast";
 import ManageAccountModal from "@/components/ManageAccountModal";
-import {usePathname} from "next/navigation";
+import {useAuth} from "@/app/context/AuthContext";
 
 const Navbar = () => {
     const router = useRouter();
+    const pathname = usePathname();
+    const cartCount = useSelector((state) => state.cart.total || 0);
+    const {user, openLogin, logout} = useAuth();
+
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [manageAccountOpen, setManageAccountOpen] = useState(false);
+    const [userStore, setUserStore] = useState(null);
     const [search, setSearch] = useState("");
-    const cartCount = useSelector((state) => state.cart.total);
-    const [isAuthOpen, setIsAuthOpen] = useState(false);
-    const [isLogin, setIsLogin] = useState(true);
-    const [loginEmail, setLoginEmail] = useState("");
-    const [loginPassword, setLoginPassword] = useState("");
-    const [signupName, setSignupName] = useState("");
-    const [signupEmail, setSignupEmail] = useState("");
-    const [signupPassword, setSignupPassword] = useState("");
-    const [user, setUser] = useState(null);
-    const [desktopDropdownOpen, setDesktopDropdownOpen] = useState(false);
-    const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    const modalRef = useRef(null);
-    const desktopDropdownRef = useRef(null);
-    const mobileDropdownRef = useRef(null);
+    const dropdownRef = useRef(null);
+    const mobileMenuRef = useRef(null);
 
-    // ✅ Load user from localStorage on mount
+    // Fetch user store
     useEffect(() => {
-        const savedUser = localStorage.getItem("user");
-        if (savedUser) setUser(JSON.parse(savedUser));
-    }, []);
+        if (user) {
+            fetch(`/api/store/get?userId=${user.id}`)
+                .then((res) => res.json())
+                .then((data) => setUserStore(data.store))
+                .catch((err) => console.error(err));
+        } else setUserStore(null);
+    }, [user]);
 
     // Close dropdowns on outside click
     useEffect(() => {
         const handleClickOutside = (e) => {
-            if (desktopDropdownRef.current && !desktopDropdownRef.current.contains(e.target)) setDesktopDropdownOpen(false);
-            if (mobileDropdownRef.current && !mobileDropdownRef.current.contains(e.target)) setMobileDropdownOpen(false);
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setDropdownOpen(false);
+            }
+            if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) {
+                setMobileMenuOpen(false);
+            }
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // Prevent scroll when modal open
+    // Prevent scroll when manage account modal is open
     useEffect(() => {
-        document.body.style.overflow = isAuthOpen ? "hidden" : "auto";
-    }, [isAuthOpen]);
-
-    // Reset forms when closing modal
-    const closeAuthModal = () => {
-        setIsAuthOpen(false);
-        setIsLogin(true);
-        setLoginEmail("");
-        setLoginPassword("");
-        setSignupName("");
-        setSignupEmail("");
-        setSignupPassword("");
-    };
-
-    // ✅ SIGNUP
-    const handleSignup = async (e) => {
-        e.preventDefault();
-        if (signupPassword.length < 6) return toast.error("Password must be at least 6 characters");
-        try {
-            const res = await fetch("/api/auth/signup", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({name: signupName, email: signupEmail, password: signupPassword}),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Signup failed");
-
-            // ✅ Fetch full user data including image
-            const userRes = await fetch("/api/user/get", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({id: data.user.id}),
-            });
-            const userData = await userRes.json();
-
-            const fullUser = userData.user || data.user;
-            localStorage.setItem("user", JSON.stringify(fullUser));
-            setUser(fullUser);
-            toast.success("Account created successfully!");
-            closeAuthModal();
-            router.push("/");
-        } catch (err) {
-            toast.error(err.message);
-        }
-    };
-
-    // ✅ LOGIN
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await fetch("/api/auth/login", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({email: loginEmail, password: loginPassword}),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Login failed");
-
-            // ✅ Fetch full user data including image
-            const userRes = await fetch("/api/user/get", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({id: data.user.id}),
-            });
-            const userData = await userRes.json();
-
-            const fullUser = userData.user || data.user;
-            localStorage.setItem("user", JSON.stringify(fullUser));
-            setUser(fullUser);
-
-            toast.success("Welcome back!");
-            closeAuthModal();
-            router.push("/");
-        } catch (err) {
-            toast.error(err.message);
-        }
-    };
+        document.body.style.overflow = manageAccountOpen ? "hidden" : "auto";
+    }, [manageAccountOpen]);
 
     const handleLogout = async () => {
-        try {
-            await fetch("/api/auth/logout", {method: "POST"});
-            localStorage.removeItem("user");
-            setUser(null);
-            setDesktopDropdownOpen(false);
-            setMobileDropdownOpen(false);
-            toast.success("Signed out successfully!");
-            router.push("/"); // Redirect to home page
-        } catch (err) {
-            console.error(err);
-            toast.error("Failed to logout");
-        }
+        await logout();
+        setDropdownOpen(false);
+        router.push("/");
     };
 
-    const [manageAccountOpen, setManageAccountOpen] = useState(false);
-    const pathname = usePathname();
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        if (search.trim() !== "") router.push(`/shop?search=${search}`);
+        setMobileMenuOpen(false);
+    };
 
-    const [userStore, setUserStore] = useState(null);
+    const handleMobileLinkClick = () => {
+        setMobileMenuOpen(false);
+    };
 
-// Fetch user store on mount or when user changes
-    useEffect(() => {
-        if (user) {
-            fetch(`/api/store/get?userId=${user.id}`)
-                .then(res => res.json()) // now this will be valid JSON
-                .then(data => setUserStore(data.store))
-                .catch(err => console.error(err));
-        } else {
-            setUserStore(null);
-        }
-    }, [user]);
     return (
         <>
-            <nav className="relative bg-white shadow-sm">
-                <div className="mx-6">
-                    <div className="flex items-center justify-between max-w-7xl mx-auto py-4">
+            <nav className="relative bg-white shadow-sm z-50">
+                <div className="mx-4 sm:mx-6">
+                    <div className="flex items-center justify-between max-w-7xl mx-auto py-4 gap-4 sm:gap-6 flex-wrap">
+
                         {/* Logo */}
-                        <Link href="/" className="text-4xl font-semibold text-slate-700">
+                        <Link href="/" className="text-2xl md:text-3xl font-semibold text-slate-700 flex-shrink-0">
                             <span className="text-green-600">Friday</span>Cart
                             <span className="text-green-600 text-5xl leading-0">.</span>
                         </Link>
 
-                        {/* Desktop Menu */}
-                        <div className="hidden sm:flex items-center gap-4 lg:gap-8 text-slate-600">
-                            <Link
-                                href="/"
-                                className={`hover:text-green-500 ${pathname === '/' ? 'text-green-500' : 'text-slate-600'}`}
-                            >
-                                Home
-                            </Link>
-                            <Link
-                                href="/shop"
-                                className={`hover:text-green-500 ${pathname === '/shop' ? 'text-green-500' : 'text-slate-600'}`}
-                            >
-                                Shop
-                            </Link>
-                            <Link
-                                href="/about"
-                                className={`hover:text-green-500 ${pathname === '/about' ? 'text-green-500' : 'text-slate-600'}`}
-                            >
-                                About
-                            </Link>
-                            <Link
-                                href="/contact"
-                                className={`hover:text-green-500 ${pathname === '/contact' ? 'text-green-500' : 'text-slate-600'}`}
-                            >
-                                Contact
-                            </Link>
-
-                            {/* Search */}
+                        {/* Desktop Navigation & Search */}
+                        <div className="hidden sm:flex items-center gap-6 text-slate-700 font-medium flex-1">
+                            <div className="flex gap-6">
+                                <Link href="/"
+                                      className={`hover:text-green-500 ${pathname === '/' ? 'text-green-500' : ''}`}>Home</Link>
+                                <Link href="/shop"
+                                      className={`hover:text-green-500 ${pathname === '/shop' ? 'text-green-500' : ''}`}>Shop</Link>
+                                <Link href="/about"
+                                      className={`hover:text-green-500 ${pathname === '/about' ? 'text-green-500' : ''}`}>About</Link>
+                                <Link href="/contact"
+                                      className={`hover:text-green-500 ${pathname === '/contact' ? 'text-green-500' : ''}`}>Contact</Link>
+                            </div>
                             <form
-                                onSubmit={(e) => {
-                                    e.preventDefault();
-                                    router.push(`/shop?search=${search}`);
-                                }}
-                                className="hidden xl:flex items-center text-sm gap-2 bg-slate-100 px-4 py-3 rounded-full"
+                                onSubmit={handleSearchSubmit}
+                                className="flex items-center text-sm gap-2 bg-slate-100 px-4 py-2 rounded-full flex-1 max-w-xl min-w-[200px]"
                             >
                                 <Search size={18} className="text-slate-600"/>
                                 <input
@@ -214,160 +110,59 @@ const Navbar = () => {
                                     placeholder="Search products"
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    className="w-full bg-transparent outline-none placeholder-slate-600"
+                                    className="w-full bg-transparent outline-none placeholder-slate-600 text-sm"
                                 />
                             </form>
+                        </div>
+
+                        {/* Right section */}
+                        <div className="flex items-center gap-3 sm:gap-6 ml-auto">
+
+                            {/* Mobile menu toggle */}
+                            <button
+                                className="sm:hidden p-2 rounded-full hover:bg-slate-100 transition"
+                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            >
+                                {mobileMenuOpen ? <X size={22}/> : <Menu size={22}/>}
+                            </button>
 
                             {/* Cart */}
-                            <Link href="/cart" className="relative flex items-center gap-2 text-slate-600">
-                                <ShoppingCart size={18}/>
-                                Cart
+                            <Link href="/cart" className="relative flex items-center">
+                                <ShoppingCart size={22} className="text-slate-700"/>
                                 <span
-                                    className="absolute -top-1 left-3 text-[8px] text-white bg-slate-600 size-3.5 rounded-full flex items-center justify-center">
+                                    className="absolute -top-1 -right-2 text-[10px] font-semibold text-white rounded-full w-4 h-4 flex items-center justify-center bg-black">
                                     {cartCount}
                                 </span>
                             </Link>
 
-                            {/* Auth Section */}
+                            {/* User / Login */}
                             {user ? (
-                                <div className="relative" ref={desktopDropdownRef}>
+                                <div className="relative" ref={dropdownRef}>
                                     <button
-                                        onClick={() => setDesktopDropdownOpen(!desktopDropdownOpen)}
-                                        className="flex items-center gap-2 rounded-full px-3 py-1.5 hover:bg-slate-100 transition"
+                                        onClick={() => setDropdownOpen(!dropdownOpen)}
+                                        className="flex items-center gap-2 rounded-full p-1 hover:bg-slate-100 transition"
                                     >
-                                        {user.image && user.image.trim() !== "" ? (
-                                            <img
-                                                src={user.image}
-                                                alt={user.name || "User"}
-                                                className="w-8 h-8 rounded-full object-cover border border-green-100"
-                                            />
+                                        {user.image ? (
+                                            <img src={user.image}
+                                                 className="w-8 h-8 rounded-full object-cover border border-green-100"/>
                                         ) : (
-                                            <UserCircle2 className="text-green-500" size={30}/>
+                                            <UserCircle2 size={28} className="text-green-500"/>
                                         )}
                                     </button>
 
-                                    {desktopDropdownOpen && (
+                                    {dropdownOpen && (
                                         <div
                                             className="absolute right-0 mt-3 w-64 backdrop-blur-xl bg-white/80 border border-green-100 shadow-lg rounded-2xl overflow-hidden animate-fadeIn z-50">
                                             <div
                                                 className="absolute -top-2 right-5 w-4 h-4 bg-white/80 border-l border-t border-green-100 rotate-45"></div>
 
-                                            {/* Header */}
                                             <div
                                                 className="grid grid-cols-[auto_1fr] items-center gap-3 px-5 pt-4 pb-3 border-b border-green-100">
                                                 {user.image ? (
-                                                    <img
-                                                        src={user.image}
-                                                        alt="avatar"
-                                                        className="w-9 h-9 rounded-full object-cover border border-green-100"
-                                                    />
+                                                    <img src={user.image}
+                                                         className="w-9 h-9 rounded-full object-cover border border-green-100"/>
                                                 ) : (
-                                                    <UserCircle2 className="text-green-500" size={34}/>
-                                                )}
-                                                <div>
-                                                    <p className="font-semibold text-slate-700 text-sm">{user.name}</p>
-                                                    <p className="text-xs text-slate-500 break-all whitespace-normal">
-                                                        {user.email}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            {/* Options */}
-                                            <div
-                                                className="flex flex-col text-sm text-slate-700 divide-y divide-green-100">
-                                                <button
-                                                    onClick={() => setManageAccountOpen(true)}
-                                                    className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition"
-                                                >
-                                                    <Settings size={16} className="text-green-500"/>
-                                                    Manage Account
-                                                </button>
-                                                <Link href='/orders' onClick={() => setDesktopDropdownOpen(false)}
-                                                      className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition"
-                                                >
-                                                    <Package size={16} className="text-green-500"/>
-                                                    My Orders
-                                                </Link>
-                                                {userStore && (
-                                                    <Link
-                                                        href={`/store`}
-                                                        onClick={() => setDesktopDropdownOpen(false)}
-                                                        className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition"
-                                                    >
-                                                        <Package size={16} className="text-green-500"/>
-                                                        My Store
-                                                    </Link>
-                                                )}
-                                                {user.isAdmin && (
-                                                    <Link
-                                                        href="/admin"
-                                                        onClick={() => setDesktopDropdownOpen(false)}
-                                                        className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition"
-                                                    >
-                                                        <Settings size={16} className="text-green-500"/>
-                                                        Admin Panel
-                                                    </Link>
-                                                )}
-                                                <button
-                                                    onClick={handleLogout}
-                                                    className="flex items-center gap-3 px-5 py-2.5 text-left text-red-500 hover:bg-red-50 transition font-medium"
-                                                >
-                                                    <LogOut size={16}/>
-                                                    Sign Out
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={() => setIsAuthOpen(true)}
-                                    className="px-8 py-2 bg-green-500 hover:bg-green-600 transition text-white rounded-full"
-                                >
-                                    Login
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Mobile Auth Section */}
-                        <div className="sm:hidden flex items-center gap-3">
-                            <Link href="/cart" className="relative text-slate-600">
-                                <ShoppingCart size={22}/>
-                                <span
-                                    className="absolute -top-1 -right-2 text-[8px] text-white bg-slate-600 size-3.5 rounded-full flex items-center justify-center">
-                                    {cartCount}
-                                </span>
-                            </Link>
-
-                            {user ? (
-                                <div className="relative" ref={mobileDropdownRef}>
-                                    <button
-                                        onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
-                                        className="flex items-center justify-center"
-                                    >
-                                        {user.image ? (
-                                            <img
-                                                src={user.image}
-                                                alt="user"
-                                                className="w-8 h-8 rounded-full object-cover border border-green-100"
-                                            />
-                                        ) : (
-                                            <UserCircle2 className="text-green-500" size={30}/>
-                                        )}
-                                    </button>
-                                    {mobileDropdownOpen && (
-                                        <div
-                                            className="absolute right-0 mt-3 w-56 backdrop-blur-xl bg-white/80 border border-green-100 shadow-lg rounded-2xl overflow-hidden animate-fadeIn z-50">
-                                            <div
-                                                className="grid grid-cols-[auto_1fr] items-center gap-3 px-4 pt-3 pb-2 border-b border-green-100">
-                                                {user.image ? (
-                                                    <img
-                                                        src={user.image}
-                                                        alt="avatar"
-                                                        className="w-8 h-8 rounded-full object-cover border border-green-100"
-                                                    />
-                                                ) : (
-                                                    <UserCircle2 className="text-green-500" size={30}/>
+                                                    <UserCircle2 size={34} className="text-green-500"/>
                                                 )}
                                                 <div>
                                                     <p className="font-semibold text-slate-700 text-sm">{user.name}</p>
@@ -377,174 +172,106 @@ const Navbar = () => {
 
                                             <div
                                                 className="flex flex-col text-sm text-slate-700 divide-y divide-green-100">
-                                                {/* Standardized button/link */}
-                                                <button
-                                                    onClick={() => setManageAccountOpen(true)}
-                                                    className="flex items-center gap-3 px-4 py-2.5 text-left hover:bg-green-50 transition"
-                                                >
-                                                    <Settings size={16} className="text-green-500"/>
-                                                    Manage Account
+                                                <button onClick={() => setManageAccountOpen(true)}
+                                                        className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition">
+                                                    <Settings size={16} className="text-green-500"/> Manage Account
                                                 </button>
-
-                                                <Link
-                                                    href='/orders'
-                                                    onClick={() => setMobileDropdownOpen(false)}
-                                                    className="flex items-center gap-3 px-4 py-2.5 text-left hover:bg-green-50 transition"
-                                                >
-                                                    <Package size={16} className="text-green-500"/>
-                                                    My Orders
+                                                <Link href="/orders"
+                                                      className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition">
+                                                    <Package size={16} className="text-green-500"/> My Orders
                                                 </Link>
-
                                                 {userStore && (
-                                                    <Link
-                                                        href={`/store`}
-                                                        onClick={() => setMobileDropdownOpen(false)}
-                                                        className="flex items-center gap-3 px-4 py-2.5 text-left hover:bg-green-50 transition"
-                                                    >
-                                                        <Package size={16} className="text-green-500"/>
-                                                        My Store
+                                                    <Link href="/store"
+                                                          className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition">
+                                                        <Package size={16} className="text-green-500"/> My Store
                                                     </Link>
                                                 )}
                                                 {user.isAdmin && (
-                                                    <Link
-                                                        href="/admin"
-                                                        onClick={() => setMobileDropdownOpen(false)}
-                                                        className="flex items-center gap-3 px-4 py-2.5 text-left hover:bg-green-50 transition"
-                                                    >
-                                                        <Settings size={16} className="text-green-500"/>
-                                                        Admin Panel
+                                                    <Link href="/admin"
+                                                          className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition">
+                                                        <Settings size={16} className="text-green-500"/> Admin Panel
                                                     </Link>
                                                 )}
-
-                                                <button
-                                                    onClick={handleLogout}
-                                                    className="flex items-center gap-3 px-4 py-2.5 text-left text-red-500 hover:bg-red-50 transition font-medium"
-                                                >
-                                                    <LogOut size={16}/>
-                                                    Sign Out
+                                                <button onClick={handleLogout}
+                                                        className="flex items-center gap-3 px-5 py-2.5 text-left text-red-500 hover:bg-red-50 transition font-medium">
+                                                    <LogOut size={16}/> Sign Out
                                                 </button>
                                             </div>
                                         </div>
                                     )}
                                 </div>
                             ) : (
-                                <button
-                                    onClick={() => setIsAuthOpen(true)}
-                                    className="px-5 py-1.5 bg-green-500 hover:bg-green-600 text-sm transition text-white rounded-full"
-                                >
-                                    Login
-                                </button>
+                                <button onClick={openLogin}
+                                        className="px-5 py-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition">Login</button>
                             )}
                         </div>
                     </div>
+
+                    {/* Mobile menu */}
+                    {mobileMenuOpen && (
+                        <div ref={mobileMenuRef}
+                             className="sm:hidden absolute top-full left-0 w-full bg-white border-t border-green-500 shadow-lg animate-slideDown z-50 p-4 flex flex-col gap-3">
+                            <form onSubmit={handleSearchSubmit}
+                                  className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full">
+                                <Search size={18} className="text-slate-600"/>
+                                <input
+                                    type="text"
+                                    placeholder="Search products"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    className="w-full bg-transparent outline-none placeholder-slate-600 text-sm"
+                                />
+                            </form>
+
+                            <Link href="/" onClick={handleMobileLinkClick}
+                                  className={`ml-2 my-1 text-[14px] hover:text-green-500 ${pathname === '/' ? 'text-green-500' : ''}`}>Home</Link>
+                            <Link href="/shop" onClick={handleMobileLinkClick}
+                                  className={`ml-2 my-1 text-[14px] hover:text-green-500 ${pathname === '/shop' ? 'text-green-500' : ''}`}>Shop</Link>
+                            <Link href="/about" onClick={handleMobileLinkClick}
+                                  className={`ml-2 my-1 text-[14px] hover:text-green-500 ${pathname === '/about' ? 'text-green-500' : ''}`}>About</Link>
+                            <Link href="/contact" onClick={handleMobileLinkClick}
+                                  className={`ml-2 my-1 text-[14px] hover:text-green-500 ${pathname === '/contact' ? 'text-green-500' : ''}`}>Contact</Link>
+                        </div>
+                    )}
                 </div>
             </nav>
 
-            {/* Auth Modal */}
-            {isAuthOpen && (
-                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-                    <div ref={modalRef}
-                         className="bg-white w-full max-w-md mx-4 rounded-2xl shadow-xl p-8 relative animate-fadeIn">
-                        <button onClick={closeAuthModal}
-                                className="absolute top-4 right-4 text-slate-500 hover:text-slate-700">
-                            <X size={22}/>
-                        </button>
-
-                        <h2 className="text-2xl font-semibold text-center text-slate-700 mb-6">
-                            {isLogin ? "Welcome Back 👋" : "Create Your Account"}
-                        </h2>
-
-                        <form onSubmit={isLogin ? handleLogin : handleSignup} className="space-y-4">
-                            {!isLogin && (
-                                <div>
-                                    <label className="block text-sm text-slate-600 mb-1">Name</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Enter your name"
-                                        value={signupName}
-                                        onChange={(e) => setSignupName(e.target.value)}
-                                        className="border border-green-300 outline-none w-full py-2 px-2 text-[14px] rounded"
-                                        required
-                                    />
-                                </div>
-                            )}
-
-                            <div>
-                                <label className="block text-sm text-slate-600 mb-1">Email</label>
-                                <input
-                                    type="email"
-                                    placeholder="Enter your email"
-                                    value={isLogin ? loginEmail : signupEmail}
-                                    onChange={(e) => isLogin ? setLoginEmail(e.target.value) : setSignupEmail(e.target.value)}
-                                    className="border border-green-300 outline-none w-full py-2 px-2 text-[14px] rounded"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm text-slate-600 mb-1">Password</label>
-                                <input
-                                    type="password"
-                                    placeholder="Enter your password"
-                                    value={isLogin ? loginPassword : signupPassword}
-                                    onChange={(e) => isLogin ? setLoginPassword(e.target.value) : setSignupPassword(e.target.value)}
-                                    className="border border-green-300 outline-none w-full py-2 px-2 text-[14px] rounded"
-                                    required
-                                />
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="w-full py-2.5 rounded bg-green-500 hover:bg-green-600 transition text-white"
-                            >
-                                {isLogin ? "Login" : "Signup"}
-                            </button>
-                        </form>
-
-                        <p className="text-center text-sm text-slate-600 mt-4">
-                            {isLogin ? (
-                                <>
-                                    Don’t have an account?{" "}
-                                    <button type="button" onClick={() => setIsLogin(false)}
-                                            className="text-green-500 hover:underline">
-                                        Sign up
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    Already have an account?{" "}
-                                    <button type="button" onClick={() => setIsLogin(true)}
-                                            className="text-green-500 hover:underline">
-                                        Log in
-                                    </button>
-                                </>
-                            )}
-                        </p>
-                    </div>
-                </div>
-            )}
-
-            {/* Manage Account Modal */}
             <ManageAccountModal
                 isOpen={manageAccountOpen}
                 onClose={() => setManageAccountOpen(false)}
                 user={user}
-                setUser={setUser}
+                setUser={() => {
+                }}
             />
 
             <style jsx>{`
               .animate-fadeIn {
-                animation: fadeIn 0.25s ease-in-out;
+                animation: fadeIn 0.18s ease-in-out;
               }
 
               @keyframes fadeIn {
                 from {
                   opacity: 0;
-                  transform: scale(0.95);
+                  transform: scale(0.98);
                 }
                 to {
                   opacity: 1;
                   transform: scale(1);
+                }
+              }
+
+              .animate-slideDown {
+                animation: slideDown 0.25s ease-in-out forwards;
+              }
+
+              @keyframes slideDown {
+                0% {
+                  opacity: 0;
+                  transform: translateY(-10px);
+                }
+                100% {
+                  opacity: 1;
+                  transform: translateY(0);
                 }
               }
             `}</style>

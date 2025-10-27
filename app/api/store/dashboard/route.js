@@ -24,23 +24,30 @@ export async function GET(req) {
             include: {user: true, product: true}
         });
 
-        // ✅ New Status Counts
+        // ✅ Status Counts
         const totalConfirmedOrders = orders.filter(o => o.status === "CONFIRMED").length;
         const totalShippedOrders = orders.filter(o => o.status === "SHIPPED").length;
         const totalCancelledOrders = orders.filter(o => o.status === "CANCELLED").length;
         const totalDeliveredOrders = orders.filter(o => o.status === "DELIVERED").length;
 
+        // ✅ Earnings ONLY from Delivered orders
+        const deliveredOrders = orders.filter(o => o.status === "DELIVERED");
+        const totalDeliveredEarnings = Math.round(
+            deliveredOrders.reduce((acc, o) => acc + o.total, 0)
+        );
+
         const dashboardData = {
             ratings,
             totalOrders: orders.length,
-            totalEarnings: Math.round(orders.reduce((acc, o) => acc + o.total, 0)),
             totalProducts: products.length,
 
-            // ✅ Return New Fields
             totalConfirmedOrders,
             totalShippedOrders,
             totalCancelledOrders,
-            totalDeliveredOrders
+            totalDeliveredOrders,
+
+            // ✅ Updated field returned to frontend
+            totalEarnings: totalDeliveredEarnings
         };
 
         return NextResponse.json({dashboardData});

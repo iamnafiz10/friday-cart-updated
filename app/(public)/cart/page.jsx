@@ -1,83 +1,81 @@
 'use client'
 
+import {useEffect, useState} from "react";
+import {useSelector, useDispatch} from "react-redux";
+import {deleteItemFromCart, clearCart} from "@/lib/features/cart/cartSlice";
 import Counter from "@/components/Counter";
 import OrderSummary from "@/components/OrderSummary";
 import PageTitle from "@/components/PageTitle";
-import {deleteItemFromCart, clearCart} from "@/lib/features/cart/cartSlice";
 import {Trash2Icon, ShoppingBasket} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import {useEffect, useState} from "react";
-import {useDispatch, useSelector} from "react-redux";
 
 export default function Cart() {
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '৳';
-    const {cartItems} = useSelector(state => state.cart); // 🔹 cart items from Redux
-    const products = useSelector(state => state.product.list); // 🔹 all products from Redux
+    const {cartItems} = useSelector(state => state.cart);
+    const products = useSelector(state => state.product.list);
     const dispatch = useDispatch();
 
-    const [cartArray, setCartArray] = useState([]); // 🔹 cart items with product details
-    const [totalPrice, setTotalPrice] = useState(0); // 🔹 total price calculation
-    const [loading, setLoading] = useState(true); // 🔹 loading state on page refresh
+    const [cartArray, setCartArray] = useState([]);
+    const [totalPrice, setTotalPrice] = useState(0);
+    const [loading, setLoading] = useState(true);
 
-    // 🔹 Convert cartItems (object) to array with product details
+    // Prepare cart array with product details and calculate total
     const createCartArray = () => {
-        setTotalPrice(0);
         const array = [];
+        let total = 0;
         for (const [key, value] of Object.entries(cartItems)) {
-            const product = products.find(product => product.id === key);
+            const product = products.find(p => p.id === key);
             if (product) {
                 array.push({...product, quantity: value});
-                setTotalPrice(prev => prev + product.price * value); // 🔹 calculate total
+                total += product.price * value;
             }
         }
         setCartArray(array);
+        setTotalPrice(total);
     };
 
-    // 🔹 Delete single product from cart
+    // Delete single item
     const handleDeleteItemFromCart = (productId) => {
         dispatch(deleteItemFromCart({productId}));
     };
 
-    // 🔹 Clear all items from cart
+    // Clear all items
     const handleClearCart = () => {
         dispatch(clearCart());
     };
 
-    // 🔹 When cart items or products change, recalculate cart array and total price
+    // Recalculate cart whenever items or products change
     useEffect(() => {
-        setLoading(true); // 🔹 start loading
         if (products.length > 0) {
-            createCartArray(); // 🔹 create cart array with product details
-            setLoading(false); // 🔹 finished loading
+            createCartArray();
+            setLoading(false);
         }
     }, [cartItems, products]);
 
-    // 🔹 Show loading state when cart data is being prepared
-    if (loading) {
-        return (
-            <div className="min-h-[80vh] mx-6 flex items-center justify-center text-slate-400">
-                <h1 className="text-2xl sm:text-4xl font-semibold">Your Cart Data is Loading...</h1>
-            </div>
-        );
-    }
+    // Loading state
+    if (loading) return (
+        <div className="min-h-[80vh] mx-6 flex items-center justify-center text-slate-400">
+            <h1 className="text-2xl sm:text-4xl font-semibold">Your Cart Data is Loading...</h1>
+        </div>
+    );
 
-    // 🔹 Show empty cart message with icon
-    if (cartArray.length === 0) {
-        return (
-            <div className="min-h-[80vh] mx-6 flex flex-col items-center justify-center text-slate-400 gap-4">
-                <ShoppingBasket size={80} className="text-green-300"/>
-                <h1 className="text-2xl sm:text-4xl font-semibold">Your cart is empty</h1>
-            </div>
-        );
-    }
+    // Empty cart state
+    if (cartArray.length === 0) return (
+        <div className="min-h-[80vh] mx-6 flex flex-col items-center justify-center text-slate-400 gap-4">
+            <ShoppingBasket size={80} className="text-green-300"/>
+            <h1 className="text-2xl sm:text-4xl font-semibold">Your cart is empty</h1>
+            <Link href="/shop" className="mt-4 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded">
+                Add Products
+            </Link>
+        </div>
+    );
 
-    // 🔹 Main cart page with table and order summary
     return (
         <div className="min-h-screen mx-6 text-slate-800">
             <div className="max-w-7xl mx-auto">
                 {/* Title + Clear Cart */}
-                <div className="flex justify-between items-center mb-5">
+                <div className="block sm:flex mb-4 sm:mb-0 justify-between items-center">
                     <PageTitle heading="My Cart" text="items in your cart" linkText="Add more" path='/shop'/>
                     <button
                         onClick={handleClearCart}
@@ -85,6 +83,13 @@ export default function Cart() {
                     >
                         Clear Cart
                     </button>
+                </div>
+
+                <div className="note_text mb-5">
+                    <p className="text-[14px] text-end">
+                        ঢাকার ভিতরে ডেলিভারি খরচ <b className="text-blue-500">৮০</b> টাকা এবং ঢাকার বাহিরে <b
+                        className="text-blue-500">১৫০</b> টাকা
+                    </p>
                 </div>
 
                 <div className="flex items-start justify-between gap-5 max-lg:flex-col">
@@ -101,76 +106,24 @@ export default function Cart() {
                             </thead>
                             <tbody className="divide-y divide-slate-200">
                             {cartArray.map((item, index) => (
-                                <tr
-                                    key={index}
-                                    className={`
-                                            hover:bg-slate-50 transition-all duration-200
-                                            max-sm:flex max-sm:flex-col max-sm:gap-2
-                                            max-sm:rounded-lg max-sm:border max-sm:border-slate-200 max-sm:p-4 max-sm:shadow-sm max-sm:mb-3
-                                            max-sm:relative
-                                        `}
-                                >
+                                <tr key={index}
+                                    className="hover:bg-slate-50 transition-all duration-200 max-sm:flex max-sm:flex-col max-sm:gap-2 max-sm:rounded-lg max-sm:border max-sm:border-slate-200 max-sm:p-4 max-sm:shadow-sm max-sm:mb-3 max-sm:relative">
                                     {/* Product Info */}
                                     <td className="flex gap-3 items-start py-3 px-4 max-sm:p-0">
-                                        <Link
-                                            href={`/product/${item.id}`}
-                                            className="bg-slate-100 rounded-md flex items-center justify-center w-16 h-16 shrink-0 hover:opacity-90 transition-all"
-                                        >
-                                            <Image
-                                                src={item.images[0]}
-                                                className="object-contain h-14 w-auto"
-                                                alt={item.name}
-                                                width={50}
-                                                height={50}
-                                            />
+                                        <Link href={`/product/${item.id}`}
+                                              className="bg-slate-100 rounded-md flex items-center justify-center w-16 h-16 shrink-0 hover:opacity-90 transition-all">
+                                            <Image src={item.images[0]} alt={item.name} width={50} height={50}
+                                                   className="object-contain h-14 w-auto"/>
                                         </Link>
-
                                         <div className="flex-1 mr-8 lg:mr-0">
-
                                             <p className="flex lg:hidden font-medium text-[15px] text-slate-700">{item.name}</p>
-
-                                            <p className="hidden lg:flex font-medium text-[15px] text-slate-700 leading-tight">
-                                                {(() => {
-                                                    const words = item.name.split(" ");
-                                                    const line1 = words.slice(0, 8).join(" ");
-                                                    const line2 = words.slice(8, 16).join(" ");
-                                                    const line3 = words.slice(16, 22).join(" ");
-                                                    const remaining = words.slice(22).join(" ");
-                                                    return (
-                                                        <>
-                                                            {line1}
-                                                            {line2 && (
-                                                                <>
-                                                                    <br/>
-                                                                    {line2}
-                                                                </>
-                                                            )}
-                                                            {line3 && (
-                                                                <>
-                                                                    <br/>
-                                                                    {line3}
-                                                                </>
-                                                            )}
-                                                            {remaining && (
-                                                                <>
-                                                                    <br/>
-                                                                    {remaining}
-                                                                </>
-                                                            )}
-                                                        </>
-                                                    );
-                                                })()}
-                                            </p>
-
+                                            <p className="hidden lg:flex font-medium text-[15px] text-slate-700 leading-tight">{item.name}</p>
                                             <p className="text-xs text-gray-400 my-1">{item.category}</p>
                                             <p className="text-sm font-semibold text-green-500">{currency}{item.price}</p>
                                         </div>
-
-                                        {/* Mobile Remove Button */}
                                         <button
                                             onClick={() => handleDeleteItemFromCart(item.id)}
                                             className="text-red-500 hover:bg-red-50 p-1.5 rounded-full active:scale-95 transition-all sm:hidden absolute top-3 right-3"
-                                            aria-label={`Remove ${item.name}`}
                                         >
                                             <Trash2Icon size={18}/>
                                         </button>
@@ -186,12 +139,11 @@ export default function Cart() {
                                         {currency}{(item.price * item.quantity).toLocaleString()}
                                     </td>
 
-                                    {/* Desktop Remove Button */}
+                                    {/* Desktop Remove */}
                                     <td className="text-center py-3 px-4 hidden sm:table-cell">
                                         <button
                                             onClick={() => handleDeleteItemFromCart(item.id)}
                                             className="text-red-500 hover:bg-red-50 p-2.5 rounded-full active:scale-95 transition-all"
-                                            aria-label={`Remove ${item.name}`}
                                         >
                                             <Trash2Icon size={18}/>
                                         </button>

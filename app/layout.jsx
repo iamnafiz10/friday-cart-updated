@@ -1,6 +1,8 @@
 import {Outfit} from "next/font/google";
 import {Toaster} from "react-hot-toast";
 import StoreProvider from "@/app/StoreProvider";
+import AuthModal from "@/components/AuthModal";
+import {AuthProvider} from "@/app/context/AuthContext";
 import "./globals.css";
 import ScrollHandler from "@/components/ScrollHandler";
 
@@ -19,11 +21,14 @@ export default function RootLayout({children}) {
     return (
         <html lang="en">
         <body className={`${outfit.className} antialiased`}>
-        <StoreProvider>
-            <Toaster/>
-            <ScrollHandler/>
-            {children}
-        </StoreProvider>
+        <AuthProvider>
+            <StoreProvider>
+                <Toaster/>
+                <ScrollHandler/>
+                {children}
+                <AuthModal/>
+            </StoreProvider>
+        </AuthProvider>
         </body>
         </html>
     );

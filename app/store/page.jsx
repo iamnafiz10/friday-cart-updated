@@ -100,52 +100,56 @@ export default function Dashboard() {
 
             <h2>Total Reviews</h2>
             <div className="mt-5">
-                {dashboardData.ratings.map((review, index) => (
-                    <div key={index}
-                         className="flex max-sm:flex-col gap-5 sm:items-center justify-between py-6 border-b border-slate-200 text-sm text-slate-600 max-w-4xl">
-                        <div>
-                            <div className="flex gap-3">
-                                {review.user?.image ? (
-                                    <Image
-                                        src={review.user.image}
-                                        alt={review.user.name || "User Avatar"}
-                                        className="w-10 aspect-square rounded-full object-cover"
-                                        width={100}
-                                        height={100}
-                                    />
-                                ) : (
-                                    <UserCircle2 size={40} className="text-green-500"/>
-                                )}
-                                <div>
-                                    <p className="font-medium">{review.user.name}</p>
-                                    <p className="font-light text-gray-400 text-[12px]">{new Date(review.createdAt).toDateString()}</p>
+                {dashboardData.ratings.length === 0 ? (
+                    <p className="text-slate-500 text-sm">No ratings available</p>
+                ) : (
+                    dashboardData.ratings.map((review, index) => (
+                        <div key={index}
+                             className="flex max-sm:flex-col gap-5 sm:items-center justify-between py-6 border-b border-slate-200 text-sm text-slate-600 max-w-4xl">
+                            <div>
+                                <div className="flex gap-3">
+                                    {review.user?.image ? (
+                                        <Image
+                                            src={review.user.image}
+                                            alt={review.user.name || "User Avatar"}
+                                            className="w-10 aspect-square rounded-full object-cover"
+                                            width={100}
+                                            height={100}
+                                        />
+                                    ) : (
+                                        <UserCircle2 size={40} className="text-green-500"/>
+                                    )}
+                                    <div>
+                                        <p className="font-medium">{review.user.name}</p>
+                                        <p className="font-light text-gray-400 text-[12px]">{new Date(review.createdAt).toDateString()}</p>
+                                    </div>
                                 </div>
+
+                                {/* ⭐ Rating Stars */}
+                                <div className="flex mt-2 gap-1">
+                                    {Array.from({length: 5}).map((_, i) => (
+                                        <StarIcon
+                                            key={i}
+                                            className={`${i < review.rating ? "text-green-500 fill-current" : "text-gray-300"}`}
+                                            size={16}
+                                        />
+                                    ))}
+                                </div>
+
+                                {/* 📝 Review Text */}
+                                <p className="mt-2 text-slate-500 max-w-xs leading-6">{review.review}</p>
+
+                                {/* 🔗 View Product Button */}
+                                <button
+                                    onClick={() => window.open(`/product/${review.productId}`, "_blank")}
+                                    className="mt-2 bg-transparent hover:bg-green-500 hover:text-white border border-green-500 text-green-500 px-3 py-2 rounded-md transition-colors"
+                                >
+                                    See Product
+                                </button>
                             </div>
-
-                            {/* ⭐ Rating Stars */}
-                            <div className="flex mt-2 gap-1">
-                                {Array.from({length: 5}).map((_, i) => (
-                                    <StarIcon
-                                        key={i}
-                                        className={`${i < review.rating ? "text-green-500 fill-current" : "text-gray-300"}`}
-                                        size={16}
-                                    />
-                                ))}
-                            </div>
-
-                            {/* 📝 Review Text */}
-                            <p className="mt-2 text-slate-500 max-w-xs leading-6">{review.review}</p>
-
-                            {/* 🔗 View Product Button */}
-                            <button
-                                onClick={() => window.open(`/product/${review.productId}`, "_blank")}
-                                className="mt-2 bg-transparent hover:bg-green-500 hover:text-white border border-green-500 text-green-500 px-3 py-2 rounded-md transition-colors"
-                            >
-                                See Product
-                            </button>
                         </div>
-                    </div>
-                ))}
+                    ))
+                )}
             </div>
         </div>
     );

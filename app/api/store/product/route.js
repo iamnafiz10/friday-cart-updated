@@ -87,3 +87,41 @@ export async function GET(request) {
         return NextResponse.json({error: error.message || "Failed to fetch products"}, {status: 400});
     }
 }
+
+// Delete product
+export async function DELETE(request) {
+    try {
+        const user = await getCurrentUser(request);
+        if (!user) {
+            return NextResponse.json({error: "Not authorized"}, {status: 401});
+        }
+
+        const storeId = await authSeller(user);
+        if (!storeId) {
+            return NextResponse.json({error: "Not authorized"}, {status: 401});
+        }
+
+        const {searchParams} = new URL(request.url);
+        const productId = searchParams.get("id");
+
+        if (!productId) {
+            return NextResponse.json({error: "Product ID required"}, {status: 400});
+        }
+
+        // Check if product belongs to current seller store
+        const product = await prisma.product.findUnique({
+            where: {id: productId},
+        });
+
+        if (!product || product.storeId !== storeId) {
+            return NextResponse.json({error: "Product not found or unauthorized"}, {status: 404});
+        }
+
+        await prisma.product.delete({where: {id: productId}});
+
+        return NextResponse.json({message: "Product deleted successfully"});
+    } catch (error) {
+        console.error(error);
+        return NextResponse.json({error: error.message || "Failed to delete product"}, {status: 500});
+    }
+}

@@ -3,8 +3,10 @@ import {useEffect, useState} from "react";
 import {X, User, Lock, Trash2, Upload} from "lucide-react";
 import Image from "next/image";
 import toast from "react-hot-toast";
+import {useAuth} from "@/app/context/AuthContext";
 
 export default function ManageAccountModal({isOpen, onClose, user, setUser}) {
+    const {updateUser} = useAuth();
     const [activeTab, setActiveTab] = useState("profile");
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
@@ -79,12 +81,16 @@ export default function ManageAccountModal({isOpen, onClose, user, setUser}) {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Update failed");
 
-            toast.success("Profile updated successfully!");
+            // ✅ Update AuthContext
+            if (updateUser) updateUser(data.user);
 
+            // ✅ Update local state in modal (and optionally parent Navbar)
             if (setUser) setUser(data.user);
-            localStorage.setItem("user", JSON.stringify(data.user));
-            window.dispatchEvent(new Event("user-updated"));
 
+            // ✅ Persist to localStorage
+            localStorage.setItem("user", JSON.stringify(data.user));
+
+            toast.success("Profile updated successfully!");
             setName("");
             setEmail("");
             onClose();

@@ -3,12 +3,13 @@ import React, {useState} from 'react';
 import {useDispatch} from 'react-redux';
 import toast from 'react-hot-toast';
 import {useRouter} from 'next/navigation';
-import {useCurrentUser, getToken as getCustomToken} from '@/lib/auth';
 import axios from 'axios';
 import {deleteItemFromCart} from '@/lib/features/cart/cartSlice';
+import {useAuth} from '@/app/context/AuthContext';
+import {getToken as getCustomToken} from '@/lib/auth';
 
 const OrderSummary = ({totalPrice, items}) => {
-    const {user, isLoaded} = useCurrentUser();
+    const {user, openLogin} = useAuth();
     const dispatch = useDispatch();
     const router = useRouter();
     const currency = '৳';
@@ -16,7 +17,7 @@ const OrderSummary = ({totalPrice, items}) => {
     // Payment Method
     const [paymentMethod, setPaymentMethod] = useState('COD');
 
-    // Address Fields (typed by user)
+    // Address Fields
     const [address, setAddress] = useState({
         name: '',
         fullAddress: '',
@@ -30,12 +31,17 @@ const OrderSummary = ({totalPrice, items}) => {
 
     // Coupon
     const [couponCodeInput, setCouponCodeInput] = useState('');
-    const [coupon, setCoupon] = useState('');
+    const [coupon, setCoupon] = useState(null);
 
     const handleCouponCode = async (event) => {
         event.preventDefault();
+        if (!user) {
+            toast.error('Please login to apply a coupon');
+            openLogin();
+            return;
+        }
+
         try {
-            if (!user) return toast('Please login to proceed');
             const token = await getCustomToken();
             const {data} = await axios.post(
                 '/api/coupon',
@@ -51,49 +57,34 @@ const OrderSummary = ({totalPrice, items}) => {
 
     const handlePlaceOrder = async (e) => {
         e.preventDefault();
-        try {
-            if (!user) return toast('Please login to place an order');
-
-            if (!address.name || !address.fullAddress || !address.phone || !address.city)
-                return toast.error('Please fill all address fields');
-
-            const token = await getCustomToken();
-            const orderData = {
-                address,
-                items,
-                paymentMethod,
-            };
-
-            if (coupon) orderData.couponCode = coupon.code;
-
-            const {data} = await axios.post('/api/orders', orderData, {
-                headers: {Authorization: `Bearer ${token}`},
-            });
-
-            if (paymentMethod === 'STRIPE') {
-                window.location.href = data.session.url;
-            } else {
-                toast.success(data.message);
-
-                // Remove ordered products from cart
-                items.forEach((item) => {
-                    dispatch(deleteItemFromCart({productId: item.id}));
-                });
-
-                router.push('/orders');
-            }
-        } catch (error) {
-            toast.error(error?.response?.data?.error || error.message);
+        if (!user) {
+            toast.error("Please login to place an order");
+            openLogin();
+            return;
         }
+
+        if (!address.name || !address.fullAddress || !address.phone || !address.city) {
+            toast.error("Please fill all address fields");
+            return;
+        }
+
+        const token = await getCustomToken();
+        const orderData = {address, items, paymentMethod};
+        if (coupon) orderData.couponCode = coupon.code;
+
+        const {data} = await axios.post("/api/orders", orderData, {
+            headers: {Authorization: `Bearer ${token}`},
+        });
+
+        toast.success(data.message);
+        items.forEach(item => dispatch(deleteItemFromCart({productId: item.id})));
+        router.push("/orders");
     };
 
-    // Shipping fee based on city
+    // Shipping fee
     const shippingFee = address.city === 'Inside Dhaka' ? 80 : 150;
-
     const discount = coupon ? (coupon.discount / 100) * totalPrice : 0;
     const finalTotal = totalPrice - discount + shippingFee;
-
-    if (!isLoaded) return null;
 
     return (
         <div
@@ -115,7 +106,7 @@ const OrderSummary = ({totalPrice, items}) => {
                 </label>
             </div>
 
-            {/* Address Fields */}
+            {/* Address */}
             <div className="my-4 py-4 border-y border-green-500 text-slate-400">
                 <p className="font-medium text-slate-600 pb-3">Delivery Address</p>
                 <div className="grid gap-3">
@@ -176,10 +167,7 @@ const OrderSummary = ({totalPrice, items}) => {
                 </div>
 
                 {!coupon && (
-                    <form
-                        onSubmit={(e) => toast.promise(handleCouponCode(e), {loading: 'Checking Coupon...'})}
-                        className="flex justify-center gap-3 mt-3"
-                    >
+                    <form onSubmit={handleCouponCode} className="flex justify-center gap-3 mt-3">
                         <input
                             onChange={(e) => setCouponCodeInput(e.target.value)}
                             value={couponCodeInput}
@@ -205,7 +193,7 @@ const OrderSummary = ({totalPrice, items}) => {
 
             {/* Place Order */}
             <button
-                onClick={(e) => toast.promise(handlePlaceOrder(e), {loading: 'Placing Order...'})}
+                onClick={handlePlaceOrder}
                 className="w-full bg-slate-700 text-white py-2.5 rounded hover:bg-slate-900 active:scale-95 transition-all"
             >
                 Place Order
