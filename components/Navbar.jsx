@@ -210,7 +210,7 @@ const Navbar = () => {
                     {/* Mobile menu */}
                     {mobileMenuOpen && (
                         <div ref={mobileMenuRef}
-                             className="sm:hidden absolute top-full left-0 w-full bg-white border-t border-green-500 shadow-lg animate-slideDown z-50 p-4 flex flex-col gap-3">
+                             className="sm:hidden absolute top-full left-0 w-full bg-white border-t border-green-500 shadow-lg animate-slideDown z-50 p-4 pb-2 flex flex-col gap-3">
                             <form onSubmit={handleSearchSubmit}
                                   className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full">
                                 <Search size={18} className="text-slate-600"/>
@@ -224,13 +224,13 @@ const Navbar = () => {
                             </form>
 
                             <Link href="/" onClick={handleMobileLinkClick}
-                                  className={`ml-2 my-1 text-[14px] hover:text-green-500 ${pathname === '/' ? 'text-green-500' : ''}`}>Home</Link>
+                                  className={`ml-2 my-1 pb-2 border-b border-green-100 text-[14px] hover:text-green-500 ${pathname === '/' ? 'text-green-500' : ''}`}>Home</Link>
                             <Link href="/shop" onClick={handleMobileLinkClick}
-                                  className={`ml-2 my-1 text-[14px] hover:text-green-500 ${pathname === '/shop' ? 'text-green-500' : ''}`}>Shop</Link>
+                                  className={`ml-2 my-1 pb-2 border-b border-green-100 text-[14px] hover:text-green-500 ${pathname === '/shop' ? 'text-green-500' : ''}`}>Shop</Link>
                             <Link href="/about" onClick={handleMobileLinkClick}
-                                  className={`ml-2 my-1 text-[14px] hover:text-green-500 ${pathname === '/about' ? 'text-green-500' : ''}`}>About</Link>
+                                  className={`ml-2 my-1 pb-2 border-b border-green-100 text-[14px] hover:text-green-500 ${pathname === '/about' ? 'text-green-500' : ''}`}>About</Link>
                             <Link href="/contact" onClick={handleMobileLinkClick}
-                                  className={`ml-2 my-1 text-[14px] hover:text-green-500 ${pathname === '/contact' ? 'text-green-500' : ''}`}>Contact</Link>
+                                  className={`ml-2 my-1 pb-2 border-b border-green-100 text-[14px] hover:text-green-500 ${pathname === '/contact' ? 'text-green-500' : ''}`}>Contact</Link>
                         </div>
                     )}
                 </div>

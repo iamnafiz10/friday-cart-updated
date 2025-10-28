@@ -36,7 +36,7 @@ const OrderSummary = ({totalPrice, items}) => {
     const handleCouponCode = async (event) => {
         event.preventDefault();
         if (!user) {
-            toast.error('Please login to apply a coupon');
+            toast.error('কুপন ব্যবহার করতে লগইন করুন');
             openLogin();
             return;
         }
@@ -57,14 +57,30 @@ const OrderSummary = ({totalPrice, items}) => {
 
     const handlePlaceOrder = async (e) => {
         e.preventDefault();
+
         if (!user) {
-            toast.error("Please login to place an order");
+            toast.error("অর্ডার করতে লগ ইন করুন");
             openLogin();
             return;
         }
 
-        if (!address.name || !address.fullAddress || !address.phone || !address.city) {
-            toast.error("Please fill all address fields");
+        if (!address.name.trim()) {
+            toast.error("অনুগ্রহ করে আপনার নাম লিখুন");
+            return;
+        }
+
+        if (!address.fullAddress.trim()) {
+            toast.error("আপনার জেলা/থানা/গ্রাম লিখুন");
+            return;
+        }
+
+        if (!address.phone.trim()) {
+            toast.error("আপনার ফোন নম্বর লিখুন");
+            return;
+        }
+
+        if (!address.city.trim()) {
+            toast.error("আপনার শহর নির্বাচন করুন");
             return;
         }
 
