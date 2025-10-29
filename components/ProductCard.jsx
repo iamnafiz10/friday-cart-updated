@@ -46,7 +46,7 @@ const ProductCard = ({product}) => {
                         height={500}
                         src={product.images[0]}
                         alt={product.name || ""}
-                        className="w-full h-full object-fill group-hover:scale-110 transition duration-500"
+                        className="w-[80%] h-auto group-hover:scale-110 transition duration-500"
                     />
                 </div>
             </Link>

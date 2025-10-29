@@ -4,7 +4,7 @@ import ProductCard from './ProductCard'
 import {useSelector} from 'react-redux'
 
 const BestSelling = () => {
-    const displayQuantity = 10
+    const displayQuantity = 15
     const products = useSelector(state => state.product.list || [])
 
     // Filter only in-stock products

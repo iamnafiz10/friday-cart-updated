@@ -10,10 +10,11 @@ const LatestProducts = () => {
     // Filter only in-stock products
     const inStockProducts = products.filter(product => product.inStock)
 
-    // Sort by createdAt (latest first)
+    // Sort by createdAt (latest first) and take only 10 products
     const latestProducts = inStockProducts
         .slice()
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 10) // ✅ Only show 10 products
 
     return (
         <div className="px-6 mx-auto mt-10 sm:mt-0">

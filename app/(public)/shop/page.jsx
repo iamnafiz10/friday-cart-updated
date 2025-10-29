@@ -6,7 +6,6 @@ import {MoveLeftIcon, FilterIcon, ChevronDownIcon} from "lucide-react";
 import {useRouter, useSearchParams} from "next/navigation";
 import {useSelector, useDispatch} from "react-redux";
 import axios from "axios";
-import Loading from "@/components/Loading";
 import {fetchProducts} from "@/lib/features/product/productSlice"; // async thunk
 
 function ShopContent() {
@@ -26,14 +25,11 @@ function ShopContent() {
     const [filterOpen, setFilterOpen] = useState(false);
     const dropdownRef = useRef(null);
     const productsPerPage = 15;
-    const [loading, setLoading] = useState(productsFromRedux.length === 0);
 
     // Fetch products on mount if Redux is empty
     useEffect(() => {
         if (productsFromRedux.length === 0) {
-            setLoading(true);
-            dispatch(fetchProducts())
-                .finally(() => setLoading(false));
+            dispatch(fetchProducts());
         }
     }, [dispatch, productsFromRedux.length]);
 
@@ -55,7 +51,7 @@ function ShopContent() {
             }
         })();
         return () => {
-            mounted = false;
+            mounted = false
         };
     }, []);
 
@@ -66,7 +62,7 @@ function ShopContent() {
 
     // Filter only in-stock products + search + category
     const filteredProducts = (products || [])
-        .filter(product => product.inStock) // ✅ inStock filter
+        .filter(product => product.inStock)
         .filter(product => {
             const matchesSearch = search ? product.name.toLowerCase().includes(search.toLowerCase()) : true;
             const matchesCategory = selectedCategory ? product.category?.toLowerCase() === selectedCategory.toLowerCase() : true;
@@ -103,15 +99,6 @@ function ShopContent() {
         router.refresh();
         setCurrentPage(1);
     };
-
-    // --- Render ---
-    if (loading) {
-        return (
-            <div className="min-h-[70vh] flex items-center justify-center">
-                <Loading message="Loading latest products..."/>
-            </div>
-        );
-    }
 
     return (
         <div className="min-h-[70vh] mx-6">

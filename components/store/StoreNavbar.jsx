@@ -42,7 +42,7 @@ const StoreNavbar = ({store}) => {
         <div className="flex items-center justify-between px-12 py-3 border-b border-slate-200 bg-white z-[999]">
             {/* Logo */}
             <Link href="/" className="relative text-4xl font-semibold text-slate-700">
-                <span className="text-green-600">go</span>cart
+                <span className="text-green-600">Friday</span>cart
                 <span className="text-green-600 text-5xl leading-0">.</span>
 
                 <p className="absolute text-xs font-semibold -top-1 -right-11 px-3 p-0.5 rounded-full text-white bg-green-500">
