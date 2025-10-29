@@ -14,24 +14,15 @@ const OrderSummary = ({totalPrice, items}) => {
     const router = useRouter();
     const currency = '৳';
 
-    // Payment Method
     const [paymentMethod, setPaymentMethod] = useState('COD');
-
-    // Address Fields
-    const [address, setAddress] = useState({
-        name: '',
-        fullAddress: '',
-        phone: '',
-        city: '',
-    });
+    const [address, setAddress] = useState({name: '', fullAddress: '', phone: '', city: ''});
+    const [couponCodeInput, setCouponCodeInput] = useState('');
+    const [coupon, setCoupon] = useState(null);
+    const [loading, setLoading] = useState(false); // ✅ Loading state
 
     const handleAddressChange = (e) => {
         setAddress({...address, [e.target.name]: e.target.value});
     };
-
-    // Coupon
-    const [couponCodeInput, setCouponCodeInput] = useState('');
-    const [coupon, setCoupon] = useState(null);
 
     const handleCouponCode = async (event) => {
         event.preventDefault();
@@ -68,36 +59,39 @@ const OrderSummary = ({totalPrice, items}) => {
             toast.error("অনুগ্রহ করে আপনার নাম লিখুন");
             return;
         }
-
         if (!address.fullAddress.trim()) {
             toast.error("আপনার জেলা/থানা/গ্রাম লিখুন");
             return;
         }
-
         if (!address.phone.trim()) {
             toast.error("আপনার ফোন নম্বর লিখুন");
             return;
         }
-
         if (!address.city.trim()) {
             toast.error("আপনার স্থান নির্বাচন করুন");
             return;
         }
 
-        const token = await getCustomToken();
-        const orderData = {address, items, paymentMethod};
-        if (coupon) orderData.couponCode = coupon.code;
+        try {
+            setLoading(true); // ✅ Start loading
+            const token = await getCustomToken();
+            const orderData = {address, items, paymentMethod};
+            if (coupon) orderData.couponCode = coupon.code;
 
-        const {data} = await axios.post("/api/orders", orderData, {
-            headers: {Authorization: `Bearer ${token}`},
-        });
+            const {data} = await axios.post("/api/orders", orderData, {
+                headers: {Authorization: `Bearer ${token}`},
+            });
 
-        toast.success(data.message);
-        items.forEach(item => dispatch(deleteItemFromCart({productId: item.id})));
-        router.push("/orders");
+            toast.success(data.message);
+            items.forEach(item => dispatch(deleteItemFromCart({productId: item.id})));
+            router.push("/orders");
+        } catch (error) {
+            toast.error(error?.response?.data?.error || error.message);
+        } finally {
+            setLoading(false); // ✅ Stop loading
+        }
     };
 
-    // Shipping fee
     const shippingFee = address.city === 'Inside Dhaka' ? 80 : 150;
     const discount = coupon ? (coupon.discount / 100) * totalPrice : 0;
     const finalTotal = totalPrice - discount + shippingFee;
@@ -126,39 +120,21 @@ const OrderSummary = ({totalPrice, items}) => {
             <div className="my-4 py-4 border-y border-green-500 text-slate-400">
                 <p className="font-medium text-slate-600 pb-3">Delivery Address</p>
                 <div className="grid gap-3">
-                    <input
-                        name="name"
-                        value={address.name}
-                        onChange={handleAddressChange}
-                        className="p-2 px-3 text-black border border-black-500 rounded text-sm focus:ring-1 focus:ring-green-500 focus:border-green-500 outline-none"
-                        type="text"
-                        placeholder="আপনার নাম লিখুন"
-                        required
+                    <input name="name" value={address.name} onChange={handleAddressChange}
+                           className="p-2 px-3 text-black border border-black-500 rounded text-sm focus:ring-1 focus:ring-green-500 focus:border-green-500 outline-none"
+                           type="text" placeholder="আপনার নাম লিখুন" required
                     />
-                    <input
-                        name="fullAddress"
-                        value={address.fullAddress}
-                        onChange={handleAddressChange}
-                        className="p-2 px-3 text-black border border-black-500 rounded text-sm focus:ring-1 focus:ring-green-500 focus:border-green-500 outline-none"
-                        type="text"
-                        placeholder="জেলা / থানা / গ্রাম"
-                        required
+                    <input name="fullAddress" value={address.fullAddress} onChange={handleAddressChange}
+                           className="p-2 px-3 text-black border border-black-500 rounded text-sm focus:ring-1 focus:ring-green-500 focus:border-green-500 outline-none"
+                           type="text" placeholder="জেলা / থানা / গ্রাম" required
                     />
-                    <input
-                        name="phone"
-                        value={address.phone}
-                        onChange={handleAddressChange}
-                        className="p-2 px-3 text-black border border-black-500 rounded text-sm focus:ring-1 focus:ring-green-500 focus:border-green-500 outline-none"
-                        type="number"
-                        placeholder="মোবাইল"
-                        required
+                    <input name="phone" value={address.phone} onChange={handleAddressChange}
+                           className="p-2 px-3 text-black border border-black-500 rounded text-sm focus:ring-1 focus:ring-green-500 focus:border-green-500 outline-none"
+                           type="number" placeholder="মোবাইল" required
                     />
-                    <select
-                        name="city"
-                        value={address.city}
-                        onChange={handleAddressChange}
-                        className="p-2 px-3 border border-green-500 rounded text-green-500 text-sm focus:ring-1 focus:ring-green-500 focus:border-green-500 outline-none cursor-pointer bg-white"
-                        required
+                    <select name="city" value={address.city} onChange={handleAddressChange}
+                            className="p-2 px-3 border border-green-500 rounded text-green-500 text-sm focus:ring-1 focus:ring-green-500 focus:border-green-500 outline-none cursor-pointer bg-white"
+                            required
                     >
                         <option value="" disabled hidden>স্থান নির্বাচন করুন</option>
                         <option value="Inside Dhaka">ঢাকার ভিতরে</option>
@@ -210,9 +186,12 @@ const OrderSummary = ({totalPrice, items}) => {
             {/* Place Order */}
             <button
                 onClick={handlePlaceOrder}
-                className="w-full bg-slate-700 text-white py-2.5 rounded hover:bg-slate-900 active:scale-95 transition-all"
+                disabled={loading} // ✅ disable button while loading
+                className={`w-full bg-slate-700 text-white py-2.5 rounded hover:bg-slate-900 active:scale-95 transition-all ${
+                    loading ? 'cursor-not-allowed opacity-70' : ''
+                }`}
             >
-                Place Order
+                {loading ? 'Order Placing...' : 'Place Order'} {/* ✅ change text */}
             </button>
         </div>
     );
