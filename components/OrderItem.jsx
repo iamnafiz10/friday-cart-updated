@@ -30,8 +30,8 @@ const OrderItem = ({order}) => {
     return (
         <>
             {/* ===== Desktop Table View ===== */}
-            <tr className="text-sm hidden md:table-row">
-                <td className="text-left">
+            <tr className="text-sm hidden md:table-row border border-green-200">
+                <td className="py-2 px-3 text-left">
                     <div className="flex flex-col gap-6 w-[100%]">
                         {order.orderItems.map((item) => (
                             <div key={item.product.id} className="flex items-center gap-4">
@@ -63,7 +63,7 @@ const OrderItem = ({order}) => {
                                                     orderId: order.id,
                                                     productId: item.product.id
                                                 })}
-                                                className={`text-green-500 hover:bg-green-50 transition ${order.status !== "DELIVERED" && "hidden"}`}
+                                                className={`text-green-500 hover:underline transition ${order.status !== "DELIVERED" && "hidden"}`}
                                             >
                                                 Rate Product
                                             </button>
@@ -79,10 +79,10 @@ const OrderItem = ({order}) => {
                 </td>
 
                 {/* Total */}
-                <td className="text-center max-md:hidden text-green-500 font-bold">{currency}{order.total}</td>
+                <td className="py-2 px-3 text-center max-md:hidden text-green-500 font-bold">{currency}{order.total}</td>
 
                 {/* Address */}
-                <td className="text-left max-md:hidden">
+                <td className="py-2 text-left max-md:hidden">
                     {!finalAddress ? (
                         <p className="text-red-500">Address not available</p>
                     ) : (
@@ -96,7 +96,7 @@ const OrderItem = ({order}) => {
                 </td>
 
                 {/* Status */}
-                <td className="text-left space-y-2 text-sm max-md:hidden">
+                <td className="py-2 px-3 text-left space-y-2 text-sm max-md:hidden">
                     <div
                         className={`flex items-center justify-center gap-1 rounded-full p-1 
               ${order.status === "ORDER_PLACED"
@@ -121,7 +121,7 @@ const OrderItem = ({order}) => {
             {/* ===== Mobile Card View ===== */}
             <tr className="md:hidden">
                 <td colSpan={5}>
-                    <div className="bg-white shadow rounded-lg p-4 mb-4 border border-slate-200 flex flex-col gap-3">
+                    <div className="bg-white shadow rounded-lg p-4 my-4 border border-slate-200 flex flex-col gap-3">
                         {/* Products */}
                         {order.orderItems.map((item) => (
                             <div key={item.product.id} className="flex gap-3 items-center">
@@ -150,7 +150,7 @@ const OrderItem = ({order}) => {
                                                 orderId: order.id,
                                                 productId: item.product.id
                                             })}
-                                            className={`text-green-500 text-xs hover:bg-green-50 px-2 py-1 rounded ${order.status !== "DELIVERED" && "hidden"}`}
+                                            className={`text-green-500 text-xs bg-green-50 w-[100px] py-1 mt-2 rounded ${order.status !== "DELIVERED" && "hidden"}`}
                                         >
                                             Rate Product
                                         </button>

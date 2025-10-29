@@ -80,7 +80,7 @@ const OrderSummary = ({totalPrice, items}) => {
         }
 
         if (!address.city.trim()) {
-            toast.error("আপনার শহর নির্বাচন করুন");
+            toast.error("আপনার স্থান নির্বাচন করুন");
             return;
         }
 

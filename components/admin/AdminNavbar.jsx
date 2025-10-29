@@ -8,11 +8,13 @@ import {UserCircle2, Settings, LogOut} from "lucide-react"
 import {useCurrentUser} from "@/lib/auth"
 import toast from "react-hot-toast"
 import ManageAccountModal from "@/components/ManageAccountModal"
+import {useAuth} from "@/app/context/AuthContext";
 
 const AdminNavbar = () => {
     const router = useRouter()
     const {user: currentUser} = useCurrentUser()
     const [user, setUser] = useState(currentUser)
+    const {logout} = useAuth();
     const [dropdownOpen, setDropdownOpen] = useState(false)
     const [manageAccountOpen, setManageAccountOpen] = useState(false)
     const dropdownRef = useRef(null)
@@ -32,17 +34,17 @@ const AdminNavbar = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [])
 
+
     const handleLogout = async () => {
         try {
-            await fetch("/api/auth/logout", {method: "POST"})
-            localStorage.removeItem("user")
-            toast.success("Signed out successfully!")
-            router.push("/") // redirect to home
+            await logout();
+            setDropdownOpen(false);
+            router.push("/");
         } catch (err) {
-            console.error(err)
-            toast.error("Failed to logout")
+            console.error(err);
+            toast.error("Failed to logout");
         }
-    }
+    };
 
     return (
         <>

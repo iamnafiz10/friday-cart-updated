@@ -1,15 +1,17 @@
 'use client';
 import {createContext, useContext, useEffect, useState} from 'react';
+import {useRouter} from 'next/navigation';
 import toast from "react-hot-toast";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({children}) => {
+    const router = useRouter();
     const [user, setUser] = useState(null);
     const [authModalOpen, setAuthModalOpen] = useState(false);
     const [isLogin, setIsLogin] = useState(true);
 
-    // ✅ Load user on mount
+    // Load user on mount
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
         if (storedUser) setUser(JSON.parse(storedUser));
@@ -27,7 +29,6 @@ export const AuthProvider = ({children}) => {
 
     const closeAuthModal = () => setAuthModalOpen(false);
 
-    // ✅ Login Method
     const login = async (email, password) => {
         try {
             const res = await fetch("/api/auth/login", {
@@ -55,7 +56,6 @@ export const AuthProvider = ({children}) => {
         }
     };
 
-    // ✅ Signup Method
     const signup = async (name, email, password) => {
         try {
             const res = await fetch("/api/auth/signup", {
@@ -83,18 +83,27 @@ export const AuthProvider = ({children}) => {
         }
     };
 
-    // ✅ Logout Method
     const logout = async () => {
-        await fetch("/api/auth/logout", {method: "POST"});
-        localStorage.removeItem("user");
-        setUser(null);
-        toast.success("Logged out");
+        try {
+            await fetch("/api/auth/logout", {method: "POST"});
+            localStorage.removeItem("user");
+            setUser(null);
+            setAuthModalOpen(false);
+
+            router.refresh(); // ✅ safe now
+
+            toast.success("Logged out successfully");
+        } catch (err) {
+            console.error("Logout error:", err);
+            toast.error("Failed to logout");
+        }
     };
 
     const updateUser = (newUserData) => {
         setUser(newUserData);
         localStorage.setItem("user", JSON.stringify(newUserData));
     };
+
     return (
         <AuthContext.Provider
             value={{

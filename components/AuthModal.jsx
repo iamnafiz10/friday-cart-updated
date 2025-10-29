@@ -25,6 +25,15 @@ export default function AuthModal() {
         return () => (document.body.style.overflow = "");
     }, [authModalOpen]);
 
+    // ✅ Reset inputs whenever modal closes
+    useEffect(() => {
+        if (!authModalOpen) {
+            setName("");
+            setEmail("");
+            setPassword("");
+        }
+    }, [authModalOpen]);
+
     // ✅ Reset inputs whenever switching between login/signup
     useEffect(() => {
         setName("");

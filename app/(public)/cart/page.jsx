@@ -84,12 +84,11 @@ export default function Cart() {
                         Clear Cart
                     </button>
                 </div>
-
-                <div className="note_text mb-5">
-                    <p className="text-[14px] text-end">
+                <div className="note_text w-full overflow-hidden mb-3">
+                    <marquee className="text-[14px]">
                         ঢাকার ভিতরে ডেলিভারি খরচ <b className="text-blue-500">৮০</b> টাকা এবং ঢাকার বাহিরে <b
                         className="text-blue-500">১৫০</b> টাকা
-                    </p>
+                    </marquee>
                 </div>
 
                 <div className="flex items-start justify-between gap-5 max-lg:flex-col">

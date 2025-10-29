@@ -60,10 +60,14 @@ const Navbar = () => {
         document.body.style.overflow = manageAccountOpen ? "hidden" : "auto";
     }, [manageAccountOpen]);
 
+    // Logout
     const handleLogout = async () => {
         await logout();
         setDropdownOpen(false);
-        router.push("/");
+        // Redirect to homepage
+        router.push("/").then(() => {
+            router.refresh();
+        });
     };
 
     const handleSearchSubmit = (e) => {
@@ -172,22 +176,26 @@ const Navbar = () => {
 
                                             <div
                                                 className="flex flex-col text-sm text-slate-700 divide-y divide-green-100">
-                                                <button onClick={() => setManageAccountOpen(true)}
-                                                        className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition">
+                                                <button
+                                                    onClick={() => {
+                                                        setManageAccountOpen(true);
+                                                        setDropdownOpen(false)
+                                                    }}
+                                                    className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition">
                                                     <Settings size={16} className="text-green-500"/> Manage Account
                                                 </button>
-                                                <Link href="/orders"
+                                                <Link onClick={() => setDropdownOpen(false)} href="/orders"
                                                       className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition">
                                                     <Package size={16} className="text-green-500"/> My Orders
                                                 </Link>
                                                 {userStore && (
-                                                    <Link href="/store"
+                                                    <Link onClick={() => setDropdownOpen(false)} href="/store"
                                                           className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition">
                                                         <Package size={16} className="text-green-500"/> My Store
                                                     </Link>
                                                 )}
                                                 {user.isAdmin && (
-                                                    <Link href="/admin"
+                                                    <Link onClick={() => setDropdownOpen(false)} href="/admin"
                                                           className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition">
                                                         <Settings size={16} className="text-green-500"/> Admin Panel
                                                     </Link>

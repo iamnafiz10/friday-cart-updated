@@ -8,8 +8,6 @@ import toast from "react-hot-toast";
 import {useRouter} from "next/navigation";
 import Loading from "@/components/Loading";
 import {FilterIcon, ChevronDownIcon} from "lucide-react";
-
-// ✅ IMPORT rating fetch
 import {useDispatch} from "react-redux";
 import {fetchUserRatings} from "@/lib/features/rating/ratingSlice";
 
@@ -103,17 +101,17 @@ export default function Orders() {
     return (
         <div className="min-h-[70vh] mx-6 relative">
             {hasPlacedOrder && (
-                <div className="max-w-3xl mx-auto my-10 animate-fadeIn">
+                <div className="max-w-3xl mx-auto mt-10 animate-fadeIn">
                     <div
                         className="bg-gradient-to-r from-green-100 via-emerald-50 to-green-100 border border-emerald-200 rounded-xl shadow-md p-6 text-center">
                         <p className="text-[18px] text-emerald-700 font-semibold">
                             আমাদের কল সেন্টার থেকে ফোন করে আপনার অর্ডারটি কনফার্ম করা হবে।
                         </p>
-                        <p className="text-red-500 text-sm sm:text-base leading-relaxed mt-2">
-                            ফেইক অর্ডার শনাক্ত করতে আমরা আপনাদের{" "}
-                            <span className="font-bold text-green-500">IP Address</span> রেখে দিচ্ছি। <br/>
-                            যে ফেইক অর্ডার করবে, তার বিরুদ্ধে আইনগত পদক্ষেপ নেওয়া হবে।
-                        </p>
+                        {/*<p className="text-red-500 text-sm sm:text-base leading-relaxed mt-2">*/}
+                        {/*    ফেইক অর্ডার শনাক্ত করতে আমরা আপনাদের{" "}*/}
+                        {/*    <span className="font-bold text-green-500">IP Address</span> রেখে দিচ্ছি। <br/>*/}
+                        {/*    যে ফেইক অর্ডার করবে, তার বিরুদ্ধে আইনগত পদক্ষেপ নেওয়া হবে।*/}
+                        {/*</p>*/}
                         <p className="mt-2 text-xs sm:text-sm text-black font-semibold">
                             আল্লাহ তায়ালা আমাদের হালাল উপার্জন ও সততার পথে রাখুন। 🤲
                         </p>
@@ -122,7 +120,7 @@ export default function Orders() {
             )}
 
             {orders.length > 0 ? (
-                <div className="mb-20 mt-10 max-w-7xl mx-auto">
+                <div className="mb-20 max-w-7xl mx-auto">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <PageTitle
                             heading="My Orders"
@@ -164,13 +162,13 @@ export default function Orders() {
                     {filteredOrders.length > 0 ? (
                         <>
                             <table
-                                className="w-full text-slate-500 border-collapse table-auto border-separate border-spacing-y-10 border-spacing-x-4">
-                                <thead className="bg-green-100">
-                                <tr className="max-sm:text-sm text-slate-600 max-md:hidden">
-                                    <th className="text-left pl-3">Product</th>
+                                className="w-full text-slate-500">
+                                <thead className="bg-green-200">
+                                <tr className="max-sm:text-sm text-black text-[14px] max-md:hidden border border-green-200">
+                                    <th className="text-left pl-4">Product</th>
                                     <th className="text-center w-[100px]">Total Price</th>
-                                    <th className="text-left pl-3">Address</th>
-                                    <th className="text-left pl-3 w-[140px]">Status</th>
+                                    <th className="text-left">Address</th>
+                                    <th className="text-center w-[150px]">Status</th>
                                 </tr>
                                 </thead>
                                 <tbody>
