@@ -2,7 +2,7 @@
 import {useState, useRef, useEffect} from "react";
 import Link from "next/link";
 import {useRouter, usePathname} from "next/navigation";
-import {useSelector} from "react-redux";
+import {useSelector, useDispatch} from "react-redux";
 import {
     Search,
     ShoppingCart,
@@ -19,8 +19,16 @@ import {useAuth} from "@/app/context/AuthContext";
 const Navbar = () => {
     const router = useRouter();
     const pathname = usePathname();
-    const cartCount = useSelector((state) => state.cart.total || 0);
+    const dispatch = useDispatch();
     const {user, openLogin, logout} = useAuth();
+
+    const products = useSelector((state) => state.product.list);
+    const cartState = useSelector((state) => state.cart);
+
+    // Compute cart count based on valid products
+    const cartCount = Object.entries(cartState.cartItems || {})
+        .filter(([key]) => products.find(p => p.id === key))
+        .reduce((acc, [, value]) => acc + value, 0);
 
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [manageAccountOpen, setManageAccountOpen] = useState(false);
@@ -60,14 +68,30 @@ const Navbar = () => {
         document.body.style.overflow = manageAccountOpen ? "hidden" : "auto";
     }, [manageAccountOpen]);
 
+    // Remove invalid cart items after database reset
+    useEffect(() => {
+        const storedCart = JSON.parse(localStorage.getItem("cart") || "{}");
+        let updated = false;
+
+        for (const key of Object.keys(storedCart)) {
+            if (!products.find(p => p.id === key)) {
+                delete storedCart[key];
+                updated = true;
+            }
+        }
+
+        if (updated) {
+            localStorage.setItem("cart", JSON.stringify(storedCart));
+            dispatch({type: 'cart/setCart', payload: storedCart});
+        }
+    }, [products, dispatch]);
+
     // Logout
     const handleLogout = async () => {
         await logout();
         setDropdownOpen(false);
-        // Redirect to homepage
-        router.push("/").then(() => {
-            router.refresh();
-        });
+        await router.push("/");
+        router.refresh();
     };
 
     const handleSearchSubmit = (e) => {
@@ -76,10 +100,7 @@ const Navbar = () => {
         setMobileMenuOpen(false);
     };
 
-    const handleMobileLinkClick = () => {
-        setMobileMenuOpen(false);
-    };
-
+    const handleMobileLinkClick = () => setMobileMenuOpen(false);
     return (
         <>
             <nav className="relative bg-white shadow-sm z-50">
@@ -104,10 +125,8 @@ const Navbar = () => {
                                 <Link href="/contact"
                                       className={`hover:text-green-500 ${pathname === '/contact' ? 'text-green-500' : ''}`}>Contact</Link>
                             </div>
-                            <form
-                                onSubmit={handleSearchSubmit}
-                                className="flex items-center text-sm gap-2 bg-slate-100 px-4 py-2 rounded-full flex-1 max-w-xl min-w-[200px]"
-                            >
+                            <form onSubmit={handleSearchSubmit}
+                                  className="flex items-center text-sm gap-2 bg-slate-100 px-4 py-2 rounded-full flex-1 max-w-xl min-w-[200px]">
                                 <Search size={18} className="text-slate-600"/>
                                 <input
                                     type="text"
@@ -179,7 +198,7 @@ const Navbar = () => {
                                                 <button
                                                     onClick={() => {
                                                         setManageAccountOpen(true);
-                                                        setDropdownOpen(false)
+                                                        setDropdownOpen(false);
                                                     }}
                                                     className="flex items-center gap-3 px-5 py-2.5 text-left hover:bg-green-50 transition">
                                                     <Settings size={16} className="text-green-500"/> Manage Account

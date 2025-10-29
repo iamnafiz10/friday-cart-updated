@@ -8,20 +8,19 @@ export default function CategoriesMarquee() {
     const dispatch = useDispatch();
     const router = useRouter();
 
-    const {list: categories, status} = useSelector((state) => state.category);
+    const {list: categories} = useSelector((state) => state.category);
 
+    // ✅ Always fetch latest categories on mount
     useEffect(() => {
-        if (status === "idle" && categories.length === 0) {
-            dispatch(fetchCategories());
-        }
-    }, [status, categories.length, dispatch]);
+        dispatch(fetchCategories());
+    }, [dispatch]);
 
-    if (status === "loading") {
-        return <div className="text-center text-slate-400 py-10">Loading categories...</div>;
-    }
-
-    if (categories.length === 0) {
-        return <div className="text-center text-slate-400 py-10">No categories found</div>;
+    if (!categories || categories.length === 0) {
+        return (
+            <div className="text-center text-slate-400 py-10">
+                No categories found.
+            </div>
+        );
     }
 
     const repeated = Array(10).fill(categories).flat();
@@ -36,7 +35,9 @@ export default function CategoriesMarquee() {
                         <button
                             key={i}
                             onClick={() =>
-                                router.push(`/shop?category=${encodeURIComponent(cat.name)}`)
+                                router.push(
+                                    `/shop?category=${encodeURIComponent(cat.name)}`
+                                )
                             }
                             className="px-5 py-2 bg-slate-100 rounded-lg text-slate-500 text-xs sm:text-sm hover:bg-slate-600 hover:text-white active:scale-95 transition-all duration-300 whitespace-nowrap"
                         >

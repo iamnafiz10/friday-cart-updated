@@ -50,7 +50,6 @@ const StoreLayout = ({children}) => {
                     The admin rejected your store.
                 </h1>
                 <p className="mt-3 text-slate-500 max-w-md">
-                    The admin rejected your store.<br/>
                     Please <Link href='/contact' className="text-green-500 underline">contact</Link> support to
                     continue.
                 </p>

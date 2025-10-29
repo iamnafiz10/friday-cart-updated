@@ -18,7 +18,6 @@ export default function Cart() {
 
     const [cartArray, setCartArray] = useState([]);
     const [totalPrice, setTotalPrice] = useState(0);
-    const [loading, setLoading] = useState(true);
 
     // Prepare cart array with product details and calculate total
     const createCartArray = () => {
@@ -35,33 +34,12 @@ export default function Cart() {
         setTotalPrice(total);
     };
 
-    // Delete single item
-    const handleDeleteItemFromCart = (productId) => {
-        dispatch(deleteItemFromCart({productId}));
-    };
-
-    // Clear all items
-    const handleClearCart = () => {
-        dispatch(clearCart());
-    };
-
-    // Recalculate cart whenever items or products change
     useEffect(() => {
-        if (products.length > 0) {
-            createCartArray();
-            setLoading(false);
-        }
+        createCartArray();
     }, [cartItems, products]);
 
-    // Loading state
-    if (loading) return (
-        <div className="min-h-[80vh] mx-6 flex items-center justify-center text-slate-400">
-            <h1 className="text-2xl sm:text-4xl font-semibold">Your Cart Data is Loading...</h1>
-        </div>
-    );
-
     // Empty cart state
-    if (cartArray.length === 0) return (
+    if (!cartArray || cartArray.length === 0) return (
         <div className="min-h-[80vh] mx-6 flex flex-col items-center justify-center text-slate-400 gap-4">
             <ShoppingBasket size={80} className="text-green-300"/>
             <h1 className="text-2xl sm:text-4xl font-semibold">Your cart is empty</h1>
@@ -71,6 +49,7 @@ export default function Cart() {
         </div>
     );
 
+    // Main cart page
     return (
         <div className="min-h-screen mx-6 text-slate-800">
             <div className="max-w-7xl mx-auto">
@@ -78,7 +57,7 @@ export default function Cart() {
                 <div className="block sm:flex mb-4 sm:mb-0 justify-between items-center">
                     <PageTitle heading="My Cart" text="items in your cart" linkText="Add more" path='/shop'/>
                     <button
-                        onClick={handleClearCart}
+                        onClick={() => dispatch(clearCart())}
                         className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-medium active:scale-95 transition"
                     >
                         Clear Cart
@@ -121,7 +100,7 @@ export default function Cart() {
                                             <p className="text-sm font-semibold text-green-500">{currency}{item.price}</p>
                                         </div>
                                         <button
-                                            onClick={() => handleDeleteItemFromCart(item.id)}
+                                            onClick={() => dispatch(deleteItemFromCart({productId: item.id}))}
                                             className="text-red-500 hover:bg-red-50 p-1.5 rounded-full active:scale-95 transition-all sm:hidden absolute top-3 right-3"
                                         >
                                             <Trash2Icon size={18}/>
@@ -141,7 +120,7 @@ export default function Cart() {
                                     {/* Desktop Remove */}
                                     <td className="text-center py-3 px-4 hidden sm:table-cell">
                                         <button
-                                            onClick={() => handleDeleteItemFromCart(item.id)}
+                                            onClick={() => dispatch(deleteItemFromCart({productId: item.id}))}
                                             className="text-red-500 hover:bg-red-50 p-2.5 rounded-full active:scale-95 transition-all"
                                         >
                                             <Trash2Icon size={18}/>
